@@ -1,4 +1,4 @@
-CREATE TABLE IF EXISTS table_tenant_memberships(
+CREATE TABLE IF NOT EXISTS table_tenant_memberships(
     id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
     user_id UUID NOT NULL,
