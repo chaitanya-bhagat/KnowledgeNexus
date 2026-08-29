@@ -6,18 +6,21 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
 
 type App struct {
 	server *http.Server
 	logger *zap.Logger
+	db     *pgxpool.Pool
 }
 
-func NewApp(server *http.Server, logger *zap.Logger) *App {
+func NewApp(server *http.Server, logger *zap.Logger, db *pgxpool.Pool) *App {
 	return &App{
 		server: server,
 		logger: logger,
+		db:     db,
 	}
 }
 
@@ -49,4 +52,10 @@ func (a *App) Run(ctx context.Context) error {
 		return <-errChan
 	}
 
+}
+
+func (a *App) Close() {
+	if a.db != nil {
+		a.db.Close()
+	}
 }
