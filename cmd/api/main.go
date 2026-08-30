@@ -25,16 +25,14 @@ func main() {
 		_ = logger.Sync()
 	}()
 
-	app, err := buildApp(config, logger)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	app, err := buildApp(ctx, config, logger)
 	if err != nil {
 		log.Fatal(err)
-
 	}
-	// defer app.server.Close() Write Close function in app.go
-
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-
-	defer stop()
+	defer app.Close()
 
 	if err := app.Run(ctx); err != nil {
 		log.Fatal(err)

@@ -1,18 +1,17 @@
 package httpadapter
 
 import (
-	"github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/health"
 	"github.com/go-chi/chi/v5"
 )
 
-func LoadRoutes() *chi.Mux {
+func LoadRoutes(deps Handlers) *chi.Mux {
 
 	router := chi.NewRouter()
 
-	healthHandler := health.NewHealthHandler()
+	// healthHandler := health.NewHealthHandler()
 
-	router.Get("/health/live", healthHandler.Live)
-	router.Get("/health/ready", healthHandler.Ready)
+	router.Get("/health/live", deps.Health.Live)
+	router.Get("/health/ready", deps.Health.Ready)
 
 	return router
 

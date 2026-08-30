@@ -9,8 +9,9 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig
-	Logger LoggerConfig
+	Server     ServerConfig
+	Logger     LoggerConfig
+	Postgresql PostgresConfig
 }
 
 func Load() (Config, error) {
@@ -28,8 +29,14 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("failed to load server config: %w", err)
 	}
 
+	postgresdb, err := loadPostgresConfig()
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to load postgresql config: %w", err)
+	}
+
 	return Config{
-		Server: server,
-		Logger: logger,
+		Server:     server,
+		Logger:     logger,
+		Postgresql: postgresdb,
 	}, nil
 }

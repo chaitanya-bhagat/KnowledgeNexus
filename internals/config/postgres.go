@@ -1,11 +1,8 @@
 package config
 
 import (
-	"errors"
 	"fmt"
-	"os"
-
-	"github.com/joho/godotenv"
+	"net/url"
 )
 
 const (
@@ -24,41 +21,37 @@ type PostgresConfig struct {
 	Port     string
 }
 
-func LoadPostgresConfig() (PostgresConfig, error) {
-	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return PostgresConfig{}, fmt.Errorf("failed to load .env file: %w", err)
+func loadPostgresConfig() (PostgresConfig, error) {
+	user, err := requiredEnv(POSTGRES_USER)
+	if err != nil {
+		return PostgresConfig{}, err
 	}
-
-	user, exists := os.LookupEnv(POSTGRES_USER)
-	if !exists {
-		return PostgresConfig{}, fmt.Errorf("environment variable %s not set", POSTGRES_USER)
+	passwd, err := requiredEnv(POSTGRES_PASSWORD)
+	if err != nil {
+		return PostgresConfig{}, err
 	}
-
-	passwd, exists := os.LookupEnv(POSTGRES_PASSWORD)
-	if !exists {
-		return PostgresConfig{}, fmt.Errorf("environment variable %s not set", POSTGRES_PASSWORD)
+	db, err := requiredEnv(POSTGRES_DB)
+	if err != nil {
+		return PostgresConfig{}, err
 	}
-
-	db, exists := os.LookupEnv(POSTGRES_DB)
-	if !exists {
-		return PostgresConfig{}, fmt.Errorf("environment variable %s not set", POSTGRES_DB)
-	}
-
-	host, exists := os.LookupEnv(POSTGRES_HOST)
-	if !exists {
-		return PostgresConfig{}, fmt.Errorf("environment variable %s not set", POSTGRES_HOST)
-	}
-
-	port, exists := os.LookupEnv(POSTGRES_PORT)
-	if !exists {
-		return PostgresConfig{}, fmt.Errorf("environment variable %s not set", POSTGRES_PORT)
-	}
-
 	return PostgresConfig{
 		User:     user,
 		Password: passwd,
 		DB:       db,
-		Host:     host,
-		Port:     port,
+		Host:     envOrDefault(POSTGRES_HOST, "localhost"),
+		Port:     envOrDefault(POSTGRES_PORT, "5432"),
 	}, nil
+}
+
+func (pc PostgresConfig) DNS() string {
+	u := url.URL{
+		Scheme: "postgres",
+		User:   url.UserPassword(pc.User, pc.Password),
+		Host:   fmt.Sprintf("%s:%s", pc.Host, pc.Port),
+		Path:   fmt.Sprintf("/%s", pc.DB),
+	}
+	q := u.Query()
+	q.Set("sslmode", "disable")
+	u.RawQuery = q.Encode()
+	return u.String()
 }
