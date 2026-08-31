@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	adapterutils "github.com/chaitanya-bhagat/knowledge-nexus/adapters/utils"
 )
 
 type DatabaseCheck interface {
@@ -25,7 +27,7 @@ func (hh *HealthHandler) Live(w http.ResponseWriter, r *http.Request) {
 	// w.Header().Set("Content-Type", "application/json")
 	// w.WriteHeader(http.StatusOK)
 
-	writeJson(w, http.StatusOK, map[string]string{"status": "ok"})
+	adapterutils.WriteJson(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
 func (hh *HealthHandler) Ready(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +36,7 @@ func (hh *HealthHandler) Ready(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	if err := hh.db.Ping(ctx); err != nil {
-		writeJson(w, http.StatusServiceUnavailable, map[string]string{"status": "not_ready"})
+		adapterutils.WriteJson(w, http.StatusServiceUnavailable, map[string]string{"status": "not_ready"})
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -43,8 +45,8 @@ func (hh *HealthHandler) Ready(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "ready"})
 }
 
-func writeJson(w http.ResponseWriter, statusCode int, body any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(body)
-}
+// func writeJson(w http.ResponseWriter, statusCode int, body any) {
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.WriteHeader(statusCode)
+// 	json.NewEncoder(w).Encode(body)
+// }
