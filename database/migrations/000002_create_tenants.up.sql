@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS table_tenants(
 );
 
 CREATE UNIQUE INDEX tenants_slug_lower_unique
-    ON tenants (LOWER(slug));
+    ON table_tenants (LOWER(slug));
