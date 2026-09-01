@@ -26,13 +26,18 @@ func buildApp(ctx context.Context, cfg config.Config, logger *zap.Logger) (*App,
 	tenantService := tenant.NewTenantService(tenantRepo)
 	tenantHandler := tenanthandler.NewTenantHandler(tenantService, logger)
 
+	membershipRepo := adaptertenant.NewMembershipRepository(dbPool)
+	membershipService := tenant.NewMembershipService(tenantRepo, membershipRepo)
+	membershipHandler := tenanthandler.NewMembershipHandler(membershipService, logger)
+
 	healthHandler := health.NewHealthHandler(dbPool)
 
 	server := &http.Server{
 		Addr: cfg.Server.Address(),
 		Handler: httpadapter.LoadRoutes(httpadapter.Handlers{
-			Health: healthHandler,
-			Tenant: tenantHandler,
+			Health:     healthHandler,
+			Tenant:     tenantHandler,
+			Membership: membershipHandler,
 		}),
 	}
 	return NewApp(server, logger, dbPool), nil
