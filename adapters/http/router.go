@@ -18,6 +18,13 @@ func LoadRoutes(deps Handlers) *chi.Mux {
 	router.Patch("/tenants/{id}", deps.Tenant.Update)
 	router.Post("/tenants/{id}/disable", deps.Tenant.Disable)
 
+	router.Post("/tenants/members", deps.Membership.Create)
+	router.Get("/tenants/{tenantID}/members", deps.Membership.List)
+	router.Post("/tenant-memberships/get", deps.Membership.Get)
+	router.Post("/tenant-memberships/update-role", deps.Membership.UpdateRole)
+	router.Post("/tenant-memberships/disable", deps.Membership.Disable)
+	router.Post("/tenant-memberships/enable", deps.Membership.Enable)
+
 	return router
 
 }

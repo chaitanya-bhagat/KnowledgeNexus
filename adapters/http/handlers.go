@@ -6,6 +6,7 @@ import (
 )
 
 type Handlers struct {
-	Health *health.HealthHandler
-	Tenant *tenanthandler.TenantHandler
+	Health     *health.HealthHandler
+	Tenant     *tenanthandler.TenantHandler
+	Membership *tenanthandler.MembershipHandler
 }

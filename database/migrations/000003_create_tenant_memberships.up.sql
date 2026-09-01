@@ -15,5 +15,5 @@ CREATE TABLE IF NOT EXISTS table_tenant_memberships(
     CONSTRAINT tenant_memberships_unique UNIQUE(tenant_id, user_id),
 
     CONSTRAINT tenant_memberships_role_check CHECK(role IN('owner', 'admin', 'member')),
-    CONSTRAINT tenant_memberships_status_check CHECK(role IN('active', 'disabled'))
+    CONSTRAINT tenant_memberships_status_check CHECK(status IN('active', 'disabled'))
 );
