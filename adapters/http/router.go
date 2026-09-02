@@ -25,6 +25,12 @@ func LoadRoutes(deps Handlers) *chi.Mux {
 	router.Post("/tenant-memberships/disable", deps.Membership.Disable)
 	router.Post("/tenant-memberships/enable", deps.Membership.Enable)
 
+	router.Post("/users/create", deps.Identity.CreateUser)
+	router.Get("/users/{userID}", deps.Identity.GetUserByID)
+	router.Get("/users/getbyemail", deps.Identity.GetUserByEmail)
+	router.Post("/users/disable", deps.Identity.Disable)
+	router.Post("/users/enable", deps.Identity.Enable)
+
 	return router
 
 }
