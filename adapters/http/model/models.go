@@ -3,6 +3,7 @@ package httpmodel
 import (
 	"time"
 
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/identity"
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
 )
 
@@ -90,4 +91,48 @@ type UpdateMembershipRoleRequest struct {
 type ChangeMembershipStatusRequest struct {
 	TenantID string `json:"tenantID"`
 	UserID   string `json:"userID"`
+}
+
+// Identity model
+
+type CreateUserRequest struct {
+	Email       string `json:"email"`
+	DisplayName string `json:"displayName"`
+}
+
+type GetUserByIDRequest struct {
+	UserID string `json:"userID"`
+}
+
+type GetUserByEmailRequest struct {
+	Email string `json:"email"`
+}
+
+type UpdateUserRequest struct {
+	UserID      string `json:"userID"`
+	DisplayName string `json:"displayName"`
+}
+
+type ChangeUserStatusRequest struct {
+	UserID string `json:"userID"`
+}
+
+type UserResponse struct {
+	ID          string    `json:"id"`
+	Email       string    `json:"email"`
+	DisplayName string    `json:"displayName"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+func ToUserResponse(user identity.User) UserResponse {
+	return UserResponse{
+		ID:          user.ID.String(),
+		Email:       user.Email,
+		DisplayName: user.DisplayName,
+		Status:      string(user.Status),
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+	}
 }
