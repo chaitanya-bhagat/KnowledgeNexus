@@ -14,7 +14,7 @@ const (
 )
 
 type KnowledgeBase struct {
-	ID          string
+	ID          uuid.UUID
 	Name        string
 	Status      Status
 	CreatedAt   time.Time

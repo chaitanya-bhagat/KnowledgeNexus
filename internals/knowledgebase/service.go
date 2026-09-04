@@ -1,0 +1,204 @@
+package knowledgebase
+
+import (
+	"context"
+	"errors"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/identity"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
+	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
+)
+
+type KnowledgeBaseService struct {
+	repo       Repository
+	tenantRepo tenant.Repository
+	userRepo   identity.Repository
+}
+
+func NewKnowledgeBaseService(repo Repository, tenantRepo tenant.Repository, userRepo identity.Repository) *KnowledgeBaseService {
+	return &KnowledgeBaseService{
+		repo:       repo,
+		tenantRepo: tenantRepo,
+		userRepo:   userRepo,
+	}
+}
+
+func (kbs *KnowledgeBaseService) CreateKnowledgeBase(ctx context.Context, kb KnowledgeBase) (KnowledgeBase, error) {
+
+	if kb.TenantID == uuid.Nil {
+		return KnowledgeBase{}, ErrInvalidTenantID
+	}
+
+	if kb.CreatedBy == uuid.Nil {
+		return KnowledgeBase{}, ErrInvalidUserID
+	}
+
+	name := strings.TrimSpace(kb.Name)
+	if name == "" {
+		return KnowledgeBase{}, ErrInvalidKnowledgeBaseName
+	}
+
+	domainType := strings.ToLower(strings.TrimSpace(kb.DomainType))
+	if domainType == "" {
+		return KnowledgeBase{}, ErrInvalidDomainType
+	}
+
+	description := strings.TrimSpace(kb.Description)
+
+	tenantDetails, err := kbs.tenantRepo.GetByID(ctx, kb.TenantID)
+	if err != nil {
+		return KnowledgeBase{}, err
+	}
+	if tenantDetails.Status == tenantmodel.StatusDisabled {
+		return KnowledgeBase{}, ErrTenantDisabled
+	}
+	userDetails, err := kbs.userRepo.GetByID(ctx, kb.CreatedBy)
+	if err != nil {
+		return KnowledgeBase{}, err
+	}
+	if userDetails.Status == identity.StatusDisabled {
+		return KnowledgeBase{}, ErrUserDisabled
+	}
+	now := time.Now().UTC()
+
+	kb = KnowledgeBase{
+		ID:          uuid.New(),
+		Name:        name,
+		TenantID:    kb.TenantID,
+		CreatedBy:   kb.CreatedBy,
+		Status:      KnowledgeBaseStatusActive,
+		DomainType:  domainType,
+		Description: description,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+	if err := kbs.repo.CreateKnowledgeBase(ctx, kb); err != nil {
+		return KnowledgeBase{}, err
+	}
+	return kb, nil
+}
+
+func (kbs *KnowledgeBaseService) GetKnowledgeBaseByID(ctx context.Context, kbID uuid.UUID, tenantID uuid.UUID) (KnowledgeBase, error) {
+	if kbID == uuid.Nil {
+		return KnowledgeBase{}, ErrInvalidKnowledgeBaseID
+	}
+	if tenantID == uuid.Nil {
+		return KnowledgeBase{}, ErrInvalidTenantID
+	}
+	_, err := kbs.tenantRepo.GetByID(ctx, tenantID)
+	if err != nil {
+		return KnowledgeBase{}, err
+	}
+
+	return kbs.repo.GetKnowledgeBaseByID(ctx, kbID, tenantID)
+}
+
+func (kbs *KnowledgeBaseService) ListKnowledgeBasesByTenantID(ctx context.Context, tenantID uuid.UUID) ([]KnowledgeBase, error) {
+	if tenantID == uuid.Nil {
+		return nil, ErrInvalidTenantID
+	}
+	_, err := kbs.tenantRepo.GetByID(ctx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	return kbs.repo.ListKnowledgeBasesByTenantID(ctx, tenantID)
+}
+
+func (kbs *KnowledgeBaseService) UpdateKnowledgeBase(ctx context.Context, kbID uuid.UUID, tenantID uuid.UUID, kb *UpdateKnowledgeBase) (KnowledgeBase, error) {
+	if kbID == uuid.Nil {
+		return KnowledgeBase{}, ErrInvalidKnowledgeBaseID
+	}
+	if tenantID == uuid.Nil {
+		return KnowledgeBase{}, ErrInvalidTenantID
+	}
+
+	name := strings.TrimSpace(kb.Name)
+	if name == "" {
+		return KnowledgeBase{}, ErrInvalidKnowledgeBaseName
+	}
+	kbDetails, err := kbs.repo.GetKnowledgeBaseByID(ctx, kbID, tenantID)
+	if err != nil {
+		return KnowledgeBase{}, err
+	}
+
+	kbDetails.Name = name
+	kbDetails.Description = strings.TrimSpace(kb.Description)
+	kbDetails.UpdatedAt = time.Now().UTC()
+
+	err = kbs.repo.UpdateKnowledgeBase(ctx, &kbDetails)
+	if err != nil {
+		return KnowledgeBase{}, err
+	}
+	return kbDetails, nil
+}
+
+func (kbs *KnowledgeBaseService) Archive(ctx context.Context, tenantID uuid.UUID, kbID uuid.UUID) (KnowledgeBase, error) {
+	if tenantID == uuid.Nil {
+		return KnowledgeBase{}, ErrInvalidTenantID
+	}
+	if kbID == uuid.Nil {
+		return KnowledgeBase{}, ErrInvalidKnowledgeBaseID
+	}
+	kbDetails, err := kbs.repo.GetKnowledgeBaseByID(ctx, kbID, tenantID)
+	if err != nil {
+		return KnowledgeBase{}, err
+	}
+	if kbDetails.Status == KnowledgeBaseStatusArchived {
+		return KnowledgeBase{}, nil
+	}
+
+	now := time.Now().UTC()
+	err = kbs.repo.UpdateKnowledgeBaseStatus(ctx, tenantID, kbID, KnowledgeBaseStatusArchived, now)
+	if err != nil {
+		return KnowledgeBase{}, err
+	}
+
+	kbDetails.Status = KnowledgeBaseStatusArchived
+	kbDetails.UpdatedAt = now
+
+	return kbDetails, nil
+}
+
+func (kbs *KnowledgeBaseService) Activate(ctx context.Context, tenantID uuid.UUID, kbID uuid.UUID) (KnowledgeBase, error) {
+	if tenantID == uuid.Nil {
+		return KnowledgeBase{}, ErrInvalidTenantID
+	}
+	if kbID == uuid.Nil {
+		return KnowledgeBase{}, ErrInvalidKnowledgeBaseID
+	}
+
+	tenantDetails, err := kbs.tenantRepo.GetByID(ctx, tenantID)
+	if err != nil {
+		if errors.Is(err, tenant.ErrInvalidTenantID) {
+			return KnowledgeBase{}, ErrTenantNotFound
+		}
+		return KnowledgeBase{}, err
+	}
+	if tenantDetails.Status == tenantmodel.StatusDisabled {
+		return KnowledgeBase{}, ErrTenantDisabled
+	}
+
+	kbDetails, err := kbs.repo.GetKnowledgeBaseByID(ctx, kbID, tenantID)
+	if err != nil {
+		return KnowledgeBase{}, err
+	}
+
+	if kbDetails.Status == KnowledgeBaseStatusActive {
+		return kbDetails, nil
+	}
+
+	now := time.Now().UTC()
+
+	err = kbs.repo.UpdateKnowledgeBaseStatus(ctx, tenantID, kbID, KnowledgeBaseStatusActive, now)
+	if err != nil {
+		return KnowledgeBase{}, err
+	}
+	kbDetails.Status = KnowledgeBaseStatusActive
+	kbDetails.UpdatedAt = now
+
+	return kbDetails, nil
+}
