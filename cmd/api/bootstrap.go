@@ -8,12 +8,15 @@ import (
 	httpadapter "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http"
 	"github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/health"
 	identityhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/identity"
+	knowledgebasehandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase"
 	tenanthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant"
 	"github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres"
 	adapteridentity "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/identity"
+	adapterknowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase"
 	adaptertenant "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/tenant"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/config"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/identity"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
 	"go.uber.org/zap"
 )
@@ -37,15 +40,20 @@ func buildApp(ctx context.Context, cfg config.Config, logger *zap.Logger) (*App,
 	identityService := identity.NewIdentityService(identityRepo, logger)
 	identityHandler := identityhandler.NewIdentityHandler(identityService, logger)
 
+	kbRepo := adapterknowledgebase.NewKnowledgeBase(dbPool)
+	kbService := knowledgebase.NewKnowledgeBaseService(kbRepo, tenantRepo, identityRepo)
+	kbHandler := knowledgebasehandler.NewKnowledgeBasehandler(*kbService, logger)
+
 	healthHandler := health.NewHealthHandler(dbPool)
 
 	server := &http.Server{
 		Addr: cfg.Server.Address(),
 		Handler: httpadapter.LoadRoutes(httpadapter.Handlers{
-			Health:     healthHandler,
-			Tenant:     tenantHandler,
-			Membership: membershipHandler,
-			Identity:   identityHandler,
+			Health:        healthHandler,
+			Tenant:        tenantHandler,
+			Membership:    membershipHandler,
+			Identity:      identityHandler,
+			KnowledgeBase: kbHandler,
 		}),
 	}
 	return NewApp(server, logger, dbPool), nil
