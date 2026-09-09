@@ -148,7 +148,7 @@ func (kbs *KnowledgeBaseService) Archive(ctx context.Context, tenantID uuid.UUID
 		return KnowledgeBase{}, err
 	}
 	if kbDetails.Status == KnowledgeBaseStatusArchived {
-		return KnowledgeBase{}, nil
+		return kbDetails, nil
 	}
 
 	now := time.Now().UTC()

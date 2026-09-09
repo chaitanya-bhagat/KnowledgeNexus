@@ -33,6 +33,7 @@ func LoadRoutes(deps Handlers) *chi.Mux {
 
 	router.Post("/knowledge-bases", deps.KnowledgeBase.Create)
 	router.Post("/knowledge-bases/get", deps.KnowledgeBase.GetKnowledgeBase)
+	router.Get("/knowledge-bases/{tenantID}/list", deps.KnowledgeBase.GetList)
 	router.Post("/knowledge-bases/update", deps.KnowledgeBase.Update)
 	router.Post("/knowledge-bases/archive", deps.KnowledgeBase.Archive)
 	router.Post("/knowledge-bases/activate", deps.KnowledgeBase.Activate)

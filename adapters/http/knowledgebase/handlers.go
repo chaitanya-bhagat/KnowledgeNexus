@@ -59,11 +59,13 @@ func (kbh *KnowledgeBaseHandler) Create(w http.ResponseWriter, r *http.Request) 
 		Description: kb.Description,
 	})
 	if err != nil {
-		adapterutils.WriteJson(w, http.StatusInternalServerError, err)
+		kbh.logger.Error("knowledge base creation failed", zap.Error(err))
+
+		adapterutils.WriteJson(w, http.StatusInternalServerError, map[string]string{"knowledge base creation failed": err.Error()})
 		return
 	}
 
-	adapterutils.WriteJson(w, http.StatusOK, httpmodel.ToKnowledgeBaseResponse(newKb))
+	adapterutils.WriteJson(w, http.StatusCreated, httpmodel.ToKnowledgeBaseResponse(newKb))
 }
 
 func (kbh *KnowledgeBaseHandler) GetKnowledgeBase(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +95,7 @@ func (kbh *KnowledgeBaseHandler) GetKnowledgeBase(w http.ResponseWriter, r *http
 
 	kbDetail, err := kbh.kbService.GetKnowledgeBaseByID(r.Context(), kbID, tenantID)
 	if err != nil {
-		adapterutils.WriteJson(w, http.StatusInternalServerError, err)
+		adapterutils.WriteJson(w, http.StatusInternalServerError, map[string]string{"knowledge base retrieval failed": err.Error()})
 		return
 	}
 	adapterutils.WriteJson(w, http.StatusOK, httpmodel.ToKnowledgeBaseResponse(kbDetail))
@@ -111,7 +113,7 @@ func (kbh *KnowledgeBaseHandler) GetList(w http.ResponseWriter, r *http.Request)
 
 	kbs, err := kbh.kbService.ListKnowledgeBasesByTenantID(r.Context(), tenantID)
 	if err != nil {
-		adapterutils.WriteJson(w, http.StatusInternalServerError, err)
+		adapterutils.WriteJson(w, http.StatusInternalServerError, map[string]string{"knowledge base list retrieval failed": err.Error()})
 		return
 	}
 	adapterutils.WriteJson(w, http.StatusOK, httpmodel.ToKnowledgeBaseListResponse(kbs))
@@ -148,7 +150,7 @@ func (kbh *KnowledgeBaseHandler) Update(w http.ResponseWriter, r *http.Request) 
 		Description: kb.Description,
 	})
 	if err != nil {
-		adapterutils.WriteJson(w, http.StatusInternalServerError, err)
+		adapterutils.WriteJson(w, http.StatusInternalServerError, map[string]string{"knowledge base update failed": err.Error()})
 		return
 	}
 	adapterutils.WriteJson(w, http.StatusOK, httpmodel.ToKnowledgeBaseResponse(kbDetails))
@@ -181,7 +183,7 @@ func (kbh *KnowledgeBaseHandler) Archive(w http.ResponseWriter, r *http.Request)
 	}
 	kbDetails, err := kbh.kbService.Archive(r.Context(), tenantID, kbID)
 	if err != nil {
-		adapterutils.WriteJson(w, http.StatusInternalServerError, err)
+		adapterutils.WriteJson(w, http.StatusInternalServerError, map[string]string{"knowledge base archival failed": err.Error()})
 		return
 	}
 	adapterutils.WriteJson(w, http.StatusOK, httpmodel.ToKnowledgeBaseResponse(kbDetails))
@@ -215,7 +217,7 @@ func (kbh *KnowledgeBaseHandler) Activate(w http.ResponseWriter, r *http.Request
 	}
 	kbDetails, err := kbh.kbService.Activate(r.Context(), tenantID, kbID)
 	if err != nil {
-		adapterutils.WriteJson(w, http.StatusInternalServerError, err)
+		adapterutils.WriteJson(w, http.StatusInternalServerError, map[string]string{"knowledge base activation failed": err.Error()})
 		return
 	}
 	adapterutils.WriteJson(w, http.StatusOK, httpmodel.ToKnowledgeBaseResponse(kbDetails))
