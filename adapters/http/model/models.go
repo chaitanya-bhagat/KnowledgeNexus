@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/identity"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase"
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
 )
 
@@ -135,4 +136,71 @@ func ToUserResponse(user identity.User) UserResponse {
 		CreatedAt:   user.CreatedAt,
 		UpdatedAt:   user.UpdatedAt,
 	}
+}
+
+//Knowledge base
+
+type CreateKnowledgeBase struct {
+	Name        string `json:"name"`
+	TenantID    string `json:"tenantID"`
+	CreatedBy   string `json:"createdBy"`
+	DomainType  string `json:"domainType"`
+	Description string `json:"description"`
+}
+
+type GetKnowledgeBase struct {
+	KbID     string `json:"kbID"`
+	TenantID string `json:"tenantID"`
+}
+
+// type ListKnowledgeBases struct {
+// 	TenantID string `json:"tenantID"`
+// }
+
+type UpdateKnowledgeBase struct {
+	TenantID    string `json:"tenantID"`
+	KbID        string `json:"kbID"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type ChangeKnowledgeBaseStatus struct {
+	KbID     string `json:"kbID"`
+	TenantID string `json:"tenantID"`
+}
+
+type KnowledgeBaseResponse struct {
+	ID          string    `json:"id"`
+	TenantID    string    `json:"tenantID"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	DomainType  string    `json:"domainType"`
+	Status      string    `json:"status"`
+	CreatedBy   string    `json:"createdBy"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+func ToKnowledgeBaseResponse(kb knowledgebase.KnowledgeBase) KnowledgeBaseResponse {
+	return KnowledgeBaseResponse{
+		ID:          kb.ID.String(),
+		TenantID:    kb.TenantID.String(),
+		Name:        kb.Name,
+		Description: kb.Description,
+		DomainType:  kb.DomainType,
+		Status:      string(kb.Status),
+		CreatedBy:   kb.CreatedBy.String(),
+		CreatedAt:   kb.CreatedAt,
+		UpdatedAt:   kb.UpdatedAt,
+	}
+}
+
+func ToKnowledgeBaseListResponse(items []knowledgebase.KnowledgeBase) []KnowledgeBaseResponse {
+	response := make([]KnowledgeBaseResponse, 0, len(items))
+
+	for _, kb := range items {
+		response = append(response, ToKnowledgeBaseResponse(kb))
+	}
+
+	return response
 }
