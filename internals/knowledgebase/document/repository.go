@@ -12,7 +12,7 @@ import (
 type Repository interface {
 	Create(ctx context.Context, document kbmodel.Document) error
 	GetByID(ctx context.Context, tenantID uuid.UUID, docID uuid.UUID) (kbmodel.Document, error)
-	GetList(ctx context.Context, tenantID uuid.UUID) ([]kbmodel.Document, error)
+	GetList(ctx context.Context, tenantID uuid.UUID, kbID uuid.UUID) ([]kbmodel.Document, error)
 	Update(ctx context.Context, document kbmodel.Document) error
 	UpdateStatus(ctx context.Context, tenantID uuid.UUID, docID uuid.UUID, status kbmodel.DocumentStatus, updatedAt time.Time) error
 }
