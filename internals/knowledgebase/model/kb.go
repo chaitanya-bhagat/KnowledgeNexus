@@ -1,4 +1,4 @@
-package knowledgebase
+package kbmodel
 
 import (
 	"time"
