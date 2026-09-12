@@ -3,7 +3,8 @@ package httpadapter
 import (
 	"github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/health"
 	identityhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/identity"
-	knowledgebasehandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase"
+	knowledgebasehandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/base"
+	documenthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/document"
 	tenanthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant"
 )
 
@@ -13,4 +14,5 @@ type Handlers struct {
 	Membership    *tenanthandler.MembershipHandler
 	Identity      *identityhandler.IdentityHandler
 	KnowledgeBase *knowledgebasehandler.KnowledgeBaseHandler
+	Document      *documenthandler.DocumentHandler
 }

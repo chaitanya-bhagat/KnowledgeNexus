@@ -8,15 +8,18 @@ import (
 	httpadapter "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http"
 	"github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/health"
 	identityhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/identity"
-	knowledgebasehandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase"
+	knowledgebasehandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/base"
+	documenthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/document"
 	tenanthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant"
 	"github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres"
 	adapteridentity "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/identity"
-	adapterknowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase"
+	adapterknowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase/base"
+	adapterdocument "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase/document"
 	adaptertenant "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/tenant"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/config"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/identity"
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase"
+	knowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/base"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/document"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
 	"go.uber.org/zap"
 )
@@ -42,7 +45,11 @@ func buildApp(ctx context.Context, cfg config.Config, logger *zap.Logger) (*App,
 
 	kbRepo := adapterknowledgebase.NewKnowledgeBase(dbPool)
 	kbService := knowledgebase.NewKnowledgeBaseService(kbRepo, tenantRepo, identityRepo)
-	kbHandler := knowledgebasehandler.NewKnowledgeBasehandler(*kbService, logger)
+	kbHandler := knowledgebasehandler.NewKnowledgeBaseHandler(*kbService, logger)
+
+	documentRepo := adapterdocument.NewDocumentRepository(dbPool)
+	documentService := document.NewDocumentService(documentRepo, tenantRepo, kbRepo, identityRepo, logger)
+	documentHandler := documenthandler.NewDocumentHandler(documentService, logger)
 
 	healthHandler := health.NewHealthHandler(dbPool)
 
@@ -54,6 +61,7 @@ func buildApp(ctx context.Context, cfg config.Config, logger *zap.Logger) (*App,
 			Membership:    membershipHandler,
 			Identity:      identityHandler,
 			KnowledgeBase: kbHandler,
+			Document:      documentHandler,
 		}),
 	}
 	return NewApp(server, logger, dbPool), nil
