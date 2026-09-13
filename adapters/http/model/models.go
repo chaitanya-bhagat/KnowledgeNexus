@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/identity"
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase"
+	kbmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/model"
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
 )
 
@@ -181,7 +181,7 @@ type KnowledgeBaseResponse struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
-func ToKnowledgeBaseResponse(kb knowledgebase.KnowledgeBase) KnowledgeBaseResponse {
+func ToKnowledgeBaseResponse(kb kbmodel.KnowledgeBase) KnowledgeBaseResponse {
 	return KnowledgeBaseResponse{
 		ID:          kb.ID.String(),
 		TenantID:    kb.TenantID.String(),
@@ -195,7 +195,7 @@ func ToKnowledgeBaseResponse(kb knowledgebase.KnowledgeBase) KnowledgeBaseRespon
 	}
 }
 
-func ToKnowledgeBaseListResponse(items []knowledgebase.KnowledgeBase) []KnowledgeBaseResponse {
+func ToKnowledgeBaseListResponse(items []kbmodel.KnowledgeBase) []KnowledgeBaseResponse {
 	response := make([]KnowledgeBaseResponse, 0, len(items))
 
 	for _, kb := range items {

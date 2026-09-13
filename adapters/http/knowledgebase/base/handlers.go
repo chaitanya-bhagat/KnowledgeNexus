@@ -9,7 +9,8 @@ import (
 
 	httpmodel "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/model"
 	adapterutils "github.com/chaitanya-bhagat/knowledge-nexus/adapters/utils"
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase"
+	knowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/base"
+	kbmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/model"
 	"go.uber.org/zap"
 )
 
@@ -18,7 +19,7 @@ type KnowledgeBaseHandler struct {
 	logger    *zap.Logger
 }
 
-func NewKnowledgeBasehandler(kbService knowledgebase.KnowledgeBaseService, logger *zap.Logger) *KnowledgeBaseHandler {
+func NewKnowledgeBaseHandler(kbService knowledgebase.KnowledgeBaseService, logger *zap.Logger) *KnowledgeBaseHandler {
 	return &KnowledgeBaseHandler{
 		kbService: &kbService,
 		logger:    logger,
@@ -51,7 +52,7 @@ func (kbh *KnowledgeBaseHandler) Create(w http.ResponseWriter, r *http.Request) 
 		})
 		return
 	}
-	newKb, err := kbh.kbService.CreateKnowledgeBase(r.Context(), knowledgebase.KnowledgeBase{
+	newKb, err := kbh.kbService.CreateKnowledgeBase(r.Context(), kbmodel.KnowledgeBase{
 		Name:        kb.Name,
 		TenantID:    tenantID,
 		CreatedBy:   userID,
@@ -145,7 +146,7 @@ func (kbh *KnowledgeBaseHandler) Update(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	kbDetails, err := kbh.kbService.UpdateKnowledgeBase(r.Context(), kbID, tenantID, &knowledgebase.UpdateKnowledgeBase{
+	kbDetails, err := kbh.kbService.UpdateKnowledgeBase(r.Context(), kbID, tenantID, &kbmodel.UpdateKnowledgeBase{
 		Name:        kb.Name,
 		Description: kb.Description,
 	})

@@ -5,9 +5,10 @@ import (
 	"errors"
 	"time"
 
+	knowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/base"
+	kbmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/model"
 	"github.com/google/uuid"
 
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,7 +24,7 @@ func NewKnowledgeBase(db *pgxpool.Pool) *kbRepository {
 	}
 }
 
-func (kbr *kbRepository) CreateKnowledgeBase(ctx context.Context, kb knowledgebase.KnowledgeBase) error {
+func (kbr *kbRepository) CreateKnowledgeBase(ctx context.Context, kb kbmodel.KnowledgeBase) error {
 	const query = `
 	INSERT INTO table_knowledge_bases (id, tenant_id, name, description, domain_type, status, created_by, created_at, updated_at)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -35,26 +36,26 @@ func (kbr *kbRepository) CreateKnowledgeBase(ctx context.Context, kb knowledgeba
 	return nil
 }
 
-func (kbr *kbRepository) GetKnowledgeBaseByID(ctx context.Context, kbID uuid.UUID, tenantID uuid.UUID) (knowledgebase.KnowledgeBase, error) {
+func (kbr *kbRepository) GetKnowledgeBaseByID(ctx context.Context, kbID uuid.UUID, tenantID uuid.UUID) (kbmodel.KnowledgeBase, error) {
 	const query = `
 	SELECT id, tenant_id, name, description, domain_type, status, created_by, created_at, updated_at
 	FROM table_knowledge_bases
 	WHERE tenant_id = $1 AND id = $2
 	`
-	var kb knowledgebase.KnowledgeBase
+	var kb kbmodel.KnowledgeBase
 	err := kbr.db.QueryRow(ctx, query, tenantID, kbID).Scan(&kb.ID, &kb.TenantID, &kb.Name, &kb.Description,
 		&kb.DomainType, &kb.Status, &kb.CreatedBy,
 		&kb.CreatedAt, &kb.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return knowledgebase.KnowledgeBase{}, knowledgebase.ErrKnowledgeBaseNotFound
+			return kbmodel.KnowledgeBase{}, knowledgebase.ErrKnowledgeBaseNotFound
 		}
-		return knowledgebase.KnowledgeBase{}, err
+		return kbmodel.KnowledgeBase{}, err
 	}
 	return kb, nil
 }
 
-func (kbr *kbRepository) ListKnowledgeBasesByTenantID(ctx context.Context, tenantID uuid.UUID) ([]knowledgebase.KnowledgeBase, error) {
+func (kbr *kbRepository) ListKnowledgeBasesByTenantID(ctx context.Context, tenantID uuid.UUID) ([]kbmodel.KnowledgeBase, error) {
 	const query = `
 	SELECT id, tenant_id, name, description, domain_type, status, created_by, created_at, updated_at
 	FROM table_knowledge_bases
@@ -67,9 +68,9 @@ func (kbr *kbRepository) ListKnowledgeBasesByTenantID(ctx context.Context, tenan
 	}
 	defer rows.Close()
 
-	kbs := make([]knowledgebase.KnowledgeBase, 0)
+	kbs := make([]kbmodel.KnowledgeBase, 0)
 	for rows.Next() {
-		var kb knowledgebase.KnowledgeBase
+		var kb kbmodel.KnowledgeBase
 
 		if err = rows.Scan(&kb.ID, &kb.TenantID, &kb.Name, &kb.Description, &kb.DomainType, &kb.Status,
 			&kb.CreatedBy, &kb.CreatedAt, &kb.UpdatedAt); err != nil {
@@ -83,7 +84,7 @@ func (kbr *kbRepository) ListKnowledgeBasesByTenantID(ctx context.Context, tenan
 	return kbs, nil
 }
 
-func (kbr *kbRepository) UpdateKnowledgeBase(ctx context.Context, kb *knowledgebase.KnowledgeBase) error {
+func (kbr *kbRepository) UpdateKnowledgeBase(ctx context.Context, kb *kbmodel.KnowledgeBase) error {
 	const query = `
 	UPDATE table_knowledge_bases SET name=$3, description=$4, updated_at=$5
 	WHERE tenant_id=$1 AND id=$2
@@ -99,7 +100,7 @@ func (kbr *kbRepository) UpdateKnowledgeBase(ctx context.Context, kb *knowledgeb
 	return nil
 }
 
-func (kbr *kbRepository) UpdateKnowledgeBaseStatus(ctx context.Context, tenantID uuid.UUID, kbID uuid.UUID, status knowledgebase.Status, updatedAt time.Time) error {
+func (kbr *kbRepository) UpdateKnowledgeBaseStatus(ctx context.Context, tenantID uuid.UUID, kbID uuid.UUID, status kbmodel.Status, updatedAt time.Time) error {
 	const query = `
 	UPDATE table_knowledge_bases SET status=$3, updated_at=$4
 	WHERE tenant_id=$1 AND id=$2
