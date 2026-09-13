@@ -26,7 +26,7 @@ func NewDocumentRepository(db *pgxpool.Pool) *documentRepository {
 
 func (dr *documentRepository) Create(ctx context.Context, document kbmodel.Document) error {
 	const query = `
-	INSERT INTO table_document(id, tenant_id, knowledge_base_id, title, document_type, status, created_by, created_at, updated_at)
+	INSERT INTO table_documents(id, tenant_id, knowledge_base_id, title, document_type, status, created_by, created_at, updated_at)
 	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`
 	_, err := dr.db.Exec(ctx, query, document.ID, document.TenantID, document.KbID, document.Title, document.DocumentType, document.Status, document.CreatedBy, document.CreatedAt, document.UpdatedAt)
@@ -41,7 +41,7 @@ func (dr *documentRepository) GetByID(ctx context.Context, tenantID uuid.UUID, d
 
 	const query = `
 	SELECT id, tenant_id, knowledge_base_id, title,  COALESCE(document_type, ''), status, created_by, created_at, updated_at
-	FROM table_document
+	FROM table_documents
 	WHERE tenant_id = $1 AND id = $2
 	`
 
@@ -60,7 +60,7 @@ func (dr *documentRepository) GetList(ctx context.Context, tenantID uuid.UUID, k
 
 	const query = `
 	SELECT id, tenant_id, knowledge_base_id, title,  COALESCE(document_type, ''), status, created_by, created_at, updated_at
-	FROM table_document
+	FROM table_documents
 	WHERE tenant_id = $1 AND knowledge_base_id = $2
 	ORDER BY created_at ASC
 	`
@@ -89,7 +89,7 @@ func (dr *documentRepository) GetList(ctx context.Context, tenantID uuid.UUID, k
 
 func (dr *documentRepository) Update(ctx context.Context, doc kbmodel.Document) error {
 	const query = `
-	 UPDATE table_document SET title = $1, document_type = $2, updated_at = $3 
+	 UPDATE table_documents SET title = $1, document_type = $2, updated_at = $3 
 	 WHERE tenant_id = $4 AND id = $5 `
 
 	result, err := dr.db.Exec(ctx, query, doc.Title, doc.DocumentType, doc.UpdatedAt, doc.TenantID, doc.ID)
@@ -103,7 +103,7 @@ func (dr *documentRepository) Update(ctx context.Context, doc kbmodel.Document) 
 }
 
 func (dr *documentRepository) UpdateStatus(ctx context.Context, tenantID uuid.UUID, docID uuid.UUID, status kbmodel.DocumentStatus, updatedAt time.Time) error {
-	const query = ` UPDATE table_document SET status = $1, updated_at = $2 
+	const query = ` UPDATE table_documents SET status = $1, updated_at = $2 
 	WHERE tenant_id = $3 AND id = $4 `
 	result, err := dr.db.Exec(ctx, query, status, updatedAt, tenantID, docID)
 	if err != nil {

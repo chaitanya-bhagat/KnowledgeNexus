@@ -138,7 +138,7 @@ func (dh *DocumentHandler) GetList(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	documents, err := dh.documentService.ListByKnowledgeBase(r.Context(), tenantID, kbID)
+	documents, err := dh.documentService.ListByKnowledgeBase(r.Context(), kbID, tenantID)
 	if err != nil {
 		dh.logger.Error("get list of documents failed", zap.Error(err))
 		adapterutils.WriteJson(w, http.StatusInternalServerError, map[string]string{"get list of documents failed": err.Error()})
