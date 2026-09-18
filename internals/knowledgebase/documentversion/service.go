@@ -120,3 +120,91 @@ func (dvs *DocVersionService) Create(ctx context.Context, input kbmodel.Document
 	}
 	return version, nil
 }
+
+func (dvs *DocVersionService) GetByID(ctx context.Context, tenantID uuid.UUID, versionID uuid.UUID) (kbmodel.DocumentVersion, error) {
+	if tenantID == uuid.Nil {
+		return kbmodel.DocumentVersion{}, ErrInvalidTenantID
+	}
+	if versionID == uuid.Nil {
+		return kbmodel.DocumentVersion{}, ErrInvalidVersionID
+	}
+	return dvs.docVersionRepo.GetByID(ctx, tenantID, versionID)
+}
+
+func (dvs *DocVersionService) GetListByDocumentID(ctx context.Context, tenantID uuid.UUID, docID uuid.UUID) ([]kbmodel.DocumentVersion, error) {
+	if tenantID == uuid.Nil {
+		return nil, ErrInvalidTenantID
+	}
+	if docID == uuid.Nil {
+		return nil, ErrInvalidDocumentID
+	}
+	docDetail, err := dvs.docRepo.GetByID(ctx, tenantID, docID)
+	if err != nil {
+		if errors.Is(err, document.ErrDocumentNotFound) {
+			return nil, ErrDocumentNotFound
+		}
+		return nil, err
+	}
+	if docDetail.Status == kbmodel.DocumentStatusArchived {
+		return nil, ErrDocumentArchived
+	}
+	return dvs.docVersionRepo.GetList(ctx, tenantID, docID)
+}
+
+func (dvs *DocVersionService) MarkProcessing(ctx context.Context, tenantID uuid.UUID, versionID uuid.UUID) error {
+	if tenantID == uuid.Nil {
+		return ErrInvalidTenantID
+	}
+	if versionID == uuid.Nil {
+		return ErrInvalidVersionID
+	}
+	versionDetail, err := dvs.docVersionRepo.GetByID(ctx, tenantID, versionID)
+	if err != nil {
+		return err
+	}
+	if versionDetail.Status == kbmodel.DocumentVersionStatusProcessing {
+		return nil
+	}
+	if versionDetail.Status != kbmodel.DocumentVersionStatusUploaded {
+		return ErrInvalidStatus
+	}
+	return dvs.docVersionRepo.Update(ctx, tenantID, versionID, kbmodel.DocumentVersionStatusProcessing, "")
+}
+
+func (dvs *DocVersionService) MarkReady(ctx context.Context, tenantID uuid.UUID, versionID uuid.UUID) error {
+	if tenantID == uuid.Nil {
+		return ErrInvalidTenantID
+	}
+	if versionID == uuid.Nil {
+		return ErrInvalidVersionID
+	}
+	versionDetail, err := dvs.docVersionRepo.GetByID(ctx, tenantID, versionID)
+	if err != nil {
+		return err
+	}
+	if versionDetail.Status == kbmodel.DocumentVersionStatusReady {
+		return nil
+	}
+	if versionDetail.Status != kbmodel.DocumentVersionStatusProcessing {
+		return ErrInvalidStatus
+	}
+	return dvs.docVersionRepo.Update(ctx, tenantID, versionID, kbmodel.DocumentVersionStatusReady, "")
+}
+
+func (dvs *DocVersionService) MarkFailed(ctx context.Context, tenantID uuid.UUID, versionID uuid.UUID, failureReason string) error {
+	if tenantID == uuid.Nil {
+		return ErrInvalidTenantID
+	}
+	if versionID == uuid.Nil {
+		return ErrInvalidVersionID
+	}
+	versionDetail, err := dvs.docVersionRepo.GetByID(ctx, tenantID, versionID)
+	if err != nil {
+		return err
+	}
+	if versionDetail.Status == kbmodel.DocumentVersionStatusReady {
+		return ErrInvalidStatus
+	}
+	reason := strings.TrimSpace(failureReason)
+	return dvs.docVersionRepo.Update(ctx, tenantID, versionID, kbmodel.DocumentVersionStatusReady, reason)
+}
