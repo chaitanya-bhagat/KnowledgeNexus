@@ -45,6 +45,10 @@ func LoadRoutes(deps Handlers) *chi.Mux {
 	router.Post("/documents/archive", deps.Document.Archive)
 	router.Post("/documents/active", deps.Document.Activate)
 
+	router.Post("/document-version", deps.DocumentVersion.Create)
+	router.Post("/document-version/get", deps.DocumentVersion.Get)
+	router.Post("/document-version/list", deps.DocumentVersion.List)
+
 	return router
 
 }

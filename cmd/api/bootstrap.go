@@ -10,16 +10,19 @@ import (
 	identityhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/identity"
 	knowledgebasehandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/base"
 	documenthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/document"
+	documentversionhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/documentversion"
 	tenanthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant"
 	"github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres"
 	adapteridentity "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/identity"
 	adapterknowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase/base"
 	adapterdocument "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase/document"
+	adapterdocumentversion "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase/documentversion"
 	adaptertenant "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/tenant"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/config"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/identity"
 	knowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/base"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/document"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/documentversion"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
 	"go.uber.org/zap"
 )
@@ -51,17 +54,22 @@ func buildApp(ctx context.Context, cfg config.Config, logger *zap.Logger) (*App,
 	documentService := document.NewDocumentService(documentRepo, tenantRepo, kbRepo, identityRepo, logger)
 	documentHandler := documenthandler.NewDocumentHandler(documentService, logger)
 
+	documentVersionRepo := adapterdocumentversion.NewDocumentVersion(dbPool)
+	documentVersionService := documentversion.NewDocumentVersionService(documentVersionRepo, documentRepo, kbRepo, tenantRepo, identityRepo, logger)
+	documentVersHandler := documentversionhandler.NewDocumentVersionHandler(documentVersionService, logger)
+
 	healthHandler := health.NewHealthHandler(dbPool)
 
 	server := &http.Server{
 		Addr: cfg.Server.Address(),
 		Handler: httpadapter.LoadRoutes(httpadapter.Handlers{
-			Health:        healthHandler,
-			Tenant:        tenantHandler,
-			Membership:    membershipHandler,
-			Identity:      identityHandler,
-			KnowledgeBase: kbHandler,
-			Document:      documentHandler,
+			Health:          healthHandler,
+			Tenant:          tenantHandler,
+			Membership:      membershipHandler,
+			Identity:        identityHandler,
+			KnowledgeBase:   kbHandler,
+			Document:        documentHandler,
+			DocumentVersion: documentVersHandler,
 		}),
 	}
 	return NewApp(server, logger, dbPool), nil

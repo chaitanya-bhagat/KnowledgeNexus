@@ -26,7 +26,7 @@ type DocVersionService struct {
 	logger         *zap.Logger
 }
 
-func NewDocumentVersion(docVersionRepo Repository, docRepo document.Repository, kbRepo knowledgebase.Repository, tenantRepo tenant.Repository, userRepo identity.Repository, logger *zap.Logger) *DocVersionService {
+func NewDocumentVersionService(docVersionRepo Repository, docRepo document.Repository, kbRepo knowledgebase.Repository, tenantRepo tenant.Repository, userRepo identity.Repository, logger *zap.Logger) *DocVersionService {
 	return &DocVersionService{
 		docVersionRepo: docVersionRepo,
 		docRepo:        docRepo,
