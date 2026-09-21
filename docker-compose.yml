@@ -25,5 +25,19 @@ services:
       timeout: 5s
       retries: 5
 
+  minio:
+    image: minio/minio:latest
+    container_name: knowledge-nexus-minio
+    command: server /data  --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "${MINIO_API_PORT}:9000"
+      - "${MINIO_CONSOLE_PORT}:9001"
+    volumes:
+      - minio_data:/data
+
 volumes:
   postgres_data:
+  minio_data:
