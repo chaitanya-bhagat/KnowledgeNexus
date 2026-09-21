@@ -12,6 +12,7 @@ type Config struct {
 	Server     ServerConfig
 	Logger     LoggerConfig
 	Postgresql PostgresConfig
+	MinIO      MinIOConfig
 }
 
 func Load() (Config, error) {
@@ -34,9 +35,14 @@ func Load() (Config, error) {
 		return Config{}, fmt.Errorf("failed to load postgresql config: %w", err)
 	}
 
+	minIO, err := loadMinIOConfig()
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to load minio config: %w", err)
+	}
 	return Config{
 		Server:     server,
 		Logger:     logger,
 		Postgresql: postgresdb,
+		MinIO:      minIO,
 	}, nil
 }

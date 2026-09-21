@@ -21,6 +21,18 @@ func envOrDefault(key, fallback string) string {
 	}
 	return value
 }
+func envBoolOrDefault(key string, fallback bool) (bool, error) {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback, nil
+	}
+
+	boolVal, err := strconv.ParseBool(value)
+	if err != nil {
+		return false, fmt.Errorf("%s must be a boolean: %w", key, err)
+	}
+	return boolVal, nil
+}
 
 func envConvertToIntOrDefault(key string, fallback int) (int, error) {
 	value := os.Getenv(key)
