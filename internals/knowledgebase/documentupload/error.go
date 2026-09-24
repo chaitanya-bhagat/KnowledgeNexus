@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	ErrInvalidDocumentID = errors.New("invalid document id")
+	ErrDocumentArchived  = errors.New("cannot upload to archived document")
 	ErrInvalidTenantID   = errors.New("invalid tenant id")
 	ErrInvalidUserID     = errors.New("invalid user id")
 
