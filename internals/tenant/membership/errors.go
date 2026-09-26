@@ -1,13 +1,6 @@
-package tenant
+package membership
 
 import "errors"
-
-var (
-	ErrNotFound     = errors.New("tenant not found")
-	ErrInvalidName  = errors.New("tenant name is required")
-	ErrInvalidSlug  = errors.New("tenant slug is required")
-	ErrSlugConflict = errors.New("tenant slug already exists")
-)
 
 // Membership errors
 var (
@@ -23,7 +16,5 @@ var (
 
 	ErrTenantDisabled = errors.New("tenant is disabled")
 
-	ErrOwnerRoleManagedSeparately = errors.New(
-		"owner membership must be managed through the owner workflow",
-	)
+	ErrOwnerRoleManagedSeparately = errors.New("owner membership must be managed through the owner workflow")
 )

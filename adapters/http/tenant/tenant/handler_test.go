@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	tenanthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant"
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
+	tenanthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant/tenant"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/mocks"
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/tenant"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"

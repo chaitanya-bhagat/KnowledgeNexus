@@ -33,17 +33,23 @@ type DocumentUpload struct {
 	CompletedAt *time.Time
 }
 
-type InitiateInput struct {
-	TenantID         uuid.UUID
-	DocumentID       uuid.UUID
-	CreatedBy        uuid.UUID
+type UploadInput struct {
 	OriginalFilename string
 	ContentType      string
 	SizeBytes        int64
 }
 
+type InitiateInput struct {
+	TenantID   uuid.UUID
+	DocumentID *uuid.UUID
+	CreatedBy  uuid.UUID
+	Upload     UploadInput
+	Document   *DocumentInput
+}
+
 type InitiateResult struct {
-	UploadID  uuid.UUID
-	URL       string
-	ExpiresAt time.Time
+	DocumentID uuid.UUID
+	UploadID   uuid.UUID
+	URL        string
+	ExpiresAt  time.Time
 }

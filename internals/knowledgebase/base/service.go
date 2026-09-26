@@ -2,7 +2,6 @@ package knowledgebase
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"time"
 
@@ -10,8 +9,8 @@ import (
 
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/identity"
 	kbmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/model"
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/tenant"
 )
 
 type KnowledgeBaseService struct {
@@ -174,9 +173,7 @@ func (kbs *KnowledgeBaseService) Activate(ctx context.Context, tenantID uuid.UUI
 
 	tenantDetails, err := kbs.tenantRepo.GetByID(ctx, tenantID)
 	if err != nil {
-		if errors.Is(err, tenant.ErrInvalidTenantID) {
-			return kbmodel.KnowledgeBase{}, ErrTenantNotFound
-		}
+
 		return kbmodel.KnowledgeBase{}, err
 	}
 	if tenantDetails.Status == tenantmodel.StatusDisabled {

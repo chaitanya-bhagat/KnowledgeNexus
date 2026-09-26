@@ -11,7 +11,8 @@ import (
 	knowledgebasehandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/base"
 	documenthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/document"
 	documentversionhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/documentversion"
-	tenanthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant"
+	membershiphandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant/memebership"
+	tenanthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant/tenant"
 	"github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres"
 	adapteridentity "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/identity"
 	adapterknowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase/base"
@@ -23,7 +24,8 @@ import (
 	knowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/base"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/document"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/documentversion"
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/membership"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/tenant"
 	"go.uber.org/zap"
 )
 
@@ -39,8 +41,8 @@ func buildApp(ctx context.Context, cfg config.Config, logger *zap.Logger) (*App,
 	tenantHandler := tenanthandler.NewTenantHandler(tenantService, logger)
 
 	membershipRepo := adaptertenant.NewMembershipRepository(dbPool)
-	membershipService := tenant.NewMembershipService(tenantRepo, membershipRepo)
-	membershipHandler := tenanthandler.NewMembershipHandler(membershipService, logger)
+	membershipService := membership.NewMembershipService(tenantRepo, membershipRepo)
+	membershipHandler := membershiphandler.NewMembershipHandler(membershipService, logger)
 
 	identityRepo := adapteridentity.NewIdentityRepository(dbPool)
 	identityService := identity.NewIdentityService(identityRepo, logger)

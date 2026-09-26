@@ -7,9 +7,17 @@ import (
 	"github.com/google/uuid"
 )
 
-type Repository interface {
-	Create(ctx context.Context, upload kbmodel.DocumentUpload) error
+//go:generate mockgen -source=repository.go -destination=mocks/repository_mock.go -package=mocks
+
+type Reader interface {
 	GetByID(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) (kbmodel.DocumentUpload, error)
-	MarkCompleted(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) error
-	MarkExpired(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) error
+}
+type Writer interface {
+	Create(ctx context.Context, upload kbmodel.DocumentUpload) error
+	// MarkCompleted(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) error
+	// MarkExpired(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) error
+}
+type Repository interface {
+	Reader
+	Writer
 }

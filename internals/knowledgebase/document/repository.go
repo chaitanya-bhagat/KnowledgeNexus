@@ -9,6 +9,8 @@ import (
 	kbmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/model"
 )
 
+//go:generate mockgen -source=repository.go -destination=mocks/repository_mock.go -package=mocks
+
 type Reader interface {
 	GetByID(ctx context.Context, tenantID uuid.UUID, docID uuid.UUID) (kbmodel.Document, error)
 	GetList(ctx context.Context, tenantID uuid.UUID, kbID uuid.UUID) ([]kbmodel.Document, error)

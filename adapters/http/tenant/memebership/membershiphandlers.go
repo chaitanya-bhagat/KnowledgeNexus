@@ -1,4 +1,4 @@
-package tenanthandler
+package membershiphandler
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 
 	httpmodel "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/model"
 	adapterutils "github.com/chaitanya-bhagat/knowledge-nexus/adapters/utils"
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/membership"
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -14,11 +14,11 @@ import (
 )
 
 type MembershipHandler struct {
-	service *tenant.MembershipService
+	service *membership.MembershipService
 	logger  *zap.Logger
 }
 
-func NewMembershipHandler(service *tenant.MembershipService, logger *zap.Logger) *MembershipHandler {
+func NewMembershipHandler(service *membership.MembershipService, logger *zap.Logger) *MembershipHandler {
 	return &MembershipHandler{
 		service: service,
 		logger:  logger,
@@ -26,17 +26,6 @@ func NewMembershipHandler(service *tenant.MembershipService, logger *zap.Logger)
 }
 
 func (mh *MembershipHandler) Create(w http.ResponseWriter, r *http.Request) {
-	// tenantID, err := uuid.Parse(
-	// 	chi.URLParam(r, "tenantID"),
-	// )
-	// if err != nil {
-	// 	adapterutils.WriteJson(
-	// 		w,
-	// 		http.StatusBadRequest,
-	// 		"invalid tenant id",
-	// 	)
-	// 	return
-	// }
 
 	var req httpmodel.CreateMembershipRequest
 

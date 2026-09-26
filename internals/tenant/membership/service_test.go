@@ -1,13 +1,14 @@
-package tenant_test
+package membership_test
 
 import (
 	"context"
 	"errors"
 	"testing"
 
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/membership"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/mocks"
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/tenant"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -102,7 +103,7 @@ func TestMembershipService_Create(t *testing.T) {
 				Role:   tenantmodel.RoleMember,
 			},
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidTenantID,
+			wantErr:    membership.ErrInvalidTenantID,
 		},
 		{
 			name:     "rejects nil user id",
@@ -112,7 +113,7 @@ func TestMembershipService_Create(t *testing.T) {
 				Role:   tenantmodel.RoleMember,
 			},
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidUserID,
+			wantErr:    membership.ErrInvalidUserID,
 		},
 		{
 			name:     "rejects invalid role",
@@ -122,7 +123,7 @@ func TestMembershipService_Create(t *testing.T) {
 				Role:   tenantmodel.Role("super-admin"),
 			},
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidRole,
+			wantErr:    membership.ErrInvalidRole,
 		},
 		{
 			name:     "rejects owner role",
@@ -132,7 +133,7 @@ func TestMembershipService_Create(t *testing.T) {
 				Role:   tenantmodel.RoleOwner,
 			},
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrOwnerRoleManagedSeparately,
+			wantErr:    membership.ErrOwnerRoleManagedSeparately,
 		},
 		{
 			name:     "returns tenant not found",
@@ -156,7 +157,7 @@ func TestMembershipService_Create(t *testing.T) {
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {
 				tenantRepo.EXPECT().GetByID(gomock.Any(), tenantID).Return(disabledTenant, nil)
 			},
-			wantErr: tenant.ErrTenantDisabled,
+			wantErr: membership.ErrTenantDisabled,
 		},
 		{
 			name:     "returns duplicate membership error",
@@ -167,9 +168,9 @@ func TestMembershipService_Create(t *testing.T) {
 			},
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {
 				tenantRepo.EXPECT().GetByID(gomock.Any(), tenantID).Return(activeTenant, nil)
-				membershipRepo.EXPECT().CreateMembership(gomock.Any(), gomock.Any()).Return(tenant.ErrMembershipExists)
+				membershipRepo.EXPECT().CreateMembership(gomock.Any(), gomock.Any()).Return(membership.ErrMembershipExists)
 			},
-			wantErr: tenant.ErrMembershipExists,
+			wantErr: membership.ErrMembershipExists,
 		},
 		{
 			name:     "returns user not found error",
@@ -180,9 +181,9 @@ func TestMembershipService_Create(t *testing.T) {
 			},
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {
 				tenantRepo.EXPECT().GetByID(gomock.Any(), tenantID).Return(activeTenant, nil)
-				membershipRepo.EXPECT().CreateMembership(gomock.Any(), gomock.Any()).Return(tenant.ErrUserNotFound)
+				membershipRepo.EXPECT().CreateMembership(gomock.Any(), gomock.Any()).Return(membership.ErrUserNotFound)
 			},
-			wantErr: tenant.ErrUserNotFound,
+			wantErr: membership.ErrUserNotFound,
 		},
 		{
 			name:     "returns repository error",
@@ -208,7 +209,7 @@ func TestMembershipService_Create(t *testing.T) {
 
 			tt.setupMocks(tenantRepo, membershipRepo)
 
-			service := tenant.NewMembershipService(tenantRepo, membershipRepo)
+			service := membership.NewMembershipService(tenantRepo, membershipRepo)
 
 			got, err := service.Create(ctx, tt.tenantID, tt.input)
 
@@ -273,23 +274,23 @@ func TestMembershipService_Get(t *testing.T) {
 			tenantID:   uuid.Nil,
 			userID:     userID,
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidTenantID,
+			wantErr:    membership.ErrInvalidTenantID,
 		},
 		{
 			name:       "rejects nil user id",
 			tenantID:   tenantID,
 			userID:     uuid.Nil,
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidUserID,
+			wantErr:    membership.ErrInvalidUserID,
 		},
 		{
 			name:     "returns membership not found",
 			tenantID: tenantID,
 			userID:   userID,
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {
-				membershipRepo.EXPECT().GetMembership(gomock.Any(), tenantID, userID).Return(tenantmodel.Membership{}, tenant.ErrMembershipNotFound)
+				membershipRepo.EXPECT().GetMembership(gomock.Any(), tenantID, userID).Return(tenantmodel.Membership{}, membership.ErrMembershipNotFound)
 			},
-			wantErr: tenant.ErrMembershipNotFound,
+			wantErr: membership.ErrMembershipNotFound,
 		},
 		{
 			name:     "returns repository error",
@@ -311,7 +312,7 @@ func TestMembershipService_Get(t *testing.T) {
 
 			tt.setupMocks(tenantRepo, membershipRepo)
 
-			service := tenant.NewMembershipService(tenantRepo, membershipRepo)
+			service := membership.NewMembershipService(tenantRepo, membershipRepo)
 
 			got, err := service.Get(ctx, tt.tenantID, tt.userID)
 
@@ -388,7 +389,7 @@ func TestMembershipService_List(t *testing.T) {
 			name:       "rejects nil tenant id",
 			tenantID:   uuid.Nil,
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidTenantID,
+			wantErr:    membership.ErrInvalidTenantID,
 		},
 		{
 			name:     "returns tenant not found",
@@ -426,7 +427,7 @@ func TestMembershipService_List(t *testing.T) {
 
 			tt.setupMocks(tenantRepo, membershipRepo)
 
-			service := tenant.NewMembershipService(tenantRepo, membershipRepo)
+			service := membership.NewMembershipService(tenantRepo, membershipRepo)
 
 			got, err := service.List(ctx, tt.tenantID)
 
@@ -552,7 +553,7 @@ func TestMembershipService_UpdateRole(t *testing.T) {
 				Role: tenantmodel.RoleAdmin,
 			},
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidTenantID,
+			wantErr:    membership.ErrInvalidTenantID,
 		},
 		{
 			name:     "rejects nil user id",
@@ -563,7 +564,7 @@ func TestMembershipService_UpdateRole(t *testing.T) {
 			},
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {
 			},
-			wantErr: tenant.ErrInvalidUserID,
+			wantErr: membership.ErrInvalidUserID,
 		},
 		{
 			name:     "rejects invalid role",
@@ -573,7 +574,7 @@ func TestMembershipService_UpdateRole(t *testing.T) {
 				Role: tenantmodel.Role("super-admin"),
 			},
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidRole,
+			wantErr:    membership.ErrInvalidRole,
 		},
 		{
 			name:     "rejects changing role to owner",
@@ -583,7 +584,7 @@ func TestMembershipService_UpdateRole(t *testing.T) {
 				Role: tenantmodel.RoleOwner,
 			},
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrOwnerRoleManagedSeparately,
+			wantErr:    membership.ErrOwnerRoleManagedSeparately,
 		},
 		{
 			name:     "returns tenant not found",
@@ -607,7 +608,7 @@ func TestMembershipService_UpdateRole(t *testing.T) {
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {
 				tenantRepo.EXPECT().GetByID(gomock.Any(), tenantID).Return(disabledTenant, nil)
 			},
-			wantErr: tenant.ErrTenantDisabled,
+			wantErr: membership.ErrTenantDisabled,
 		},
 		{
 			name:     "returns membership not found",
@@ -618,9 +619,9 @@ func TestMembershipService_UpdateRole(t *testing.T) {
 			},
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {
 				tenantRepo.EXPECT().GetByID(gomock.Any(), tenantID).Return(activeTenant, nil)
-				membershipRepo.EXPECT().GetMembership(gomock.Any(), tenantID, userID).Return(tenantmodel.Membership{}, tenant.ErrMembershipNotFound)
+				membershipRepo.EXPECT().GetMembership(gomock.Any(), tenantID, userID).Return(tenantmodel.Membership{}, membership.ErrMembershipNotFound)
 			},
-			wantErr: tenant.ErrMembershipNotFound,
+			wantErr: membership.ErrMembershipNotFound,
 		},
 		{
 			name:     "rejects modifying owner membership",
@@ -633,7 +634,7 @@ func TestMembershipService_UpdateRole(t *testing.T) {
 				tenantRepo.EXPECT().GetByID(gomock.Any(), tenantID).Return(activeTenant, nil)
 				membershipRepo.EXPECT().GetMembership(gomock.Any(), tenantID, userID).Return(ownerMembership, nil)
 			},
-			wantErr: tenant.ErrOwnerRoleManagedSeparately,
+			wantErr: membership.ErrOwnerRoleManagedSeparately,
 		},
 		{
 			name:     "returns update repository error",
@@ -660,7 +661,7 @@ func TestMembershipService_UpdateRole(t *testing.T) {
 
 			tt.setupMocks(tenantRepo, membershipRepo)
 
-			service := tenant.NewMembershipService(tenantRepo, membershipRepo)
+			service := membership.NewMembershipService(tenantRepo, membershipRepo)
 
 			got, err := service.UpdateRole(ctx, tt.tenantID, tt.userID, tt.input)
 
@@ -745,14 +746,14 @@ func TestMembershipService_Disable(t *testing.T) {
 			tenantID:   uuid.Nil,
 			userID:     userID,
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidTenantID,
+			wantErr:    membership.ErrInvalidTenantID,
 		},
 		{
 			name:       "rejects nil user id",
 			tenantID:   tenantID,
 			userID:     uuid.Nil,
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidUserID,
+			wantErr:    membership.ErrInvalidUserID,
 		},
 		{
 			name:     "returns membership not found",
@@ -760,9 +761,9 @@ func TestMembershipService_Disable(t *testing.T) {
 			userID:   userID,
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {
 				membershipRepo.
-					EXPECT().GetMembership(gomock.Any(), tenantID, userID).Return(tenantmodel.Membership{}, tenant.ErrMembershipNotFound)
+					EXPECT().GetMembership(gomock.Any(), tenantID, userID).Return(tenantmodel.Membership{}, membership.ErrMembershipNotFound)
 			},
-			wantErr: tenant.ErrMembershipNotFound,
+			wantErr: membership.ErrMembershipNotFound,
 		},
 		{
 			name:     "rejects disabling owner membership",
@@ -772,7 +773,7 @@ func TestMembershipService_Disable(t *testing.T) {
 				tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {
 				membershipRepo.EXPECT().GetMembership(gomock.Any(), tenantID, userID).Return(ownerMembership, nil)
 			},
-			wantErr: tenant.ErrOwnerRoleManagedSeparately,
+			wantErr: membership.ErrOwnerRoleManagedSeparately,
 		},
 		{
 			name:     "returns get repository error",
@@ -806,7 +807,7 @@ func TestMembershipService_Disable(t *testing.T) {
 
 			tt.setupMocks(tenantRepo, membershipRepo)
 
-			service := tenant.NewMembershipService(tenantRepo, membershipRepo)
+			service := membership.NewMembershipService(tenantRepo, membershipRepo)
 
 			got, err := service.Disable(ctx, tt.tenantID, tt.userID)
 
@@ -907,14 +908,14 @@ func TestMembershipService_Enable(t *testing.T) {
 			tenantID:   uuid.Nil,
 			userID:     userID,
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidTenantID,
+			wantErr:    membership.ErrInvalidTenantID,
 		},
 		{
 			name:       "rejects nil user id",
 			tenantID:   tenantID,
 			userID:     uuid.Nil,
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {},
-			wantErr:    tenant.ErrInvalidUserID,
+			wantErr:    membership.ErrInvalidUserID,
 		},
 		{
 			name:     "returns tenant not found",
@@ -932,7 +933,7 @@ func TestMembershipService_Enable(t *testing.T) {
 			setupMocks: func(tenantRepo *mocks.MockRepository, membershipRepo *mocks.MockMembershipRepository) {
 				tenantRepo.EXPECT().GetByID(gomock.Any(), tenantID).Return(disabledTenant, nil)
 			},
-			wantErr: tenant.ErrTenantDisabled,
+			wantErr: membership.ErrTenantDisabled,
 		},
 		{
 			name:     "returns membership not found",
@@ -943,9 +944,9 @@ func TestMembershipService_Enable(t *testing.T) {
 				membershipRepo *mocks.MockMembershipRepository,
 			) {
 				tenantRepo.EXPECT().GetByID(gomock.Any(), tenantID).Return(activeTenant, nil)
-				membershipRepo.EXPECT().GetMembership(gomock.Any(), tenantID, userID).Return(tenantmodel.Membership{}, tenant.ErrMembershipNotFound)
+				membershipRepo.EXPECT().GetMembership(gomock.Any(), tenantID, userID).Return(tenantmodel.Membership{}, membership.ErrMembershipNotFound)
 			},
-			wantErr: tenant.ErrMembershipNotFound,
+			wantErr: membership.ErrMembershipNotFound,
 		},
 		{
 			name:     "rejects enabling owner membership",
@@ -958,7 +959,7 @@ func TestMembershipService_Enable(t *testing.T) {
 				tenantRepo.EXPECT().GetByID(gomock.Any(), tenantID).Return(activeTenant, nil)
 				membershipRepo.EXPECT().GetMembership(gomock.Any(), tenantID, userID).Return(ownerMembership, nil)
 			},
-			wantErr: tenant.ErrOwnerRoleManagedSeparately,
+			wantErr: membership.ErrOwnerRoleManagedSeparately,
 		},
 		{
 			name:     "returns tenant repository error",
@@ -1010,7 +1011,7 @@ func TestMembershipService_Enable(t *testing.T) {
 
 			tt.setupMocks(tenantRepo, membershipRepo)
 
-			service := tenant.NewMembershipService(tenantRepo, membershipRepo)
+			service := membership.NewMembershipService(tenantRepo, membershipRepo)
 
 			got, err := service.Enable(ctx, tt.tenantID, tt.userID)
 

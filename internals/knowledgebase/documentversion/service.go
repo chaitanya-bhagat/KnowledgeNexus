@@ -12,8 +12,8 @@ import (
 	knowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/base"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/document"
 	kbmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/model"
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/tenant"
 	"go.uber.org/zap"
 )
 

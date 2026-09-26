@@ -33,6 +33,12 @@ type CreateDocument struct {
 	CreatedBy       uuid.UUID
 }
 
+type DocumentInput struct {
+	KnowledgeBaseID uuid.UUID
+	Title           string
+	DocumentType    string
+}
+
 type UpdateDocumentInput struct {
 	Title        string
 	DocumentType string

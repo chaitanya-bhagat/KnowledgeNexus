@@ -9,8 +9,8 @@ import (
 
 	httpmodel "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/model"
 	adapterutils "github.com/chaitanya-bhagat/knowledge-nexus/adapters/utils"
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/tenant"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )

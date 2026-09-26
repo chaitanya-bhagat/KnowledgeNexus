@@ -18,6 +18,7 @@ type ObjectInfo struct {
 	ETag        string
 }
 
+//go:generate mockgen -source=objectstore.go -destination=mocks/objectstore_mock.go -package=mocks
 type ObjectStore interface {
 	PresignPut(ctx context.Context, key string, contentType string, expire time.Duration) (PresignedUpload, error)
 	Stat(ctx context.Context, key string) (ObjectInfo, error)
