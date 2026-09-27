@@ -14,10 +14,13 @@ type Reader interface {
 }
 type Writer interface {
 	Create(ctx context.Context, upload kbmodel.DocumentUpload) error
-	// MarkCompleted(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) error
 	// MarkExpired(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) error
 }
 type Repository interface {
 	Reader
 	Writer
+}
+
+type CompletionRepository interface {
+	MarkCompleted(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) error
 }

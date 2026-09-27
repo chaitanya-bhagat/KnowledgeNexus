@@ -17,8 +17,9 @@ var (
 type DocumentUpload struct {
 	ID uuid.UUID
 
-	TenantID   uuid.UUID
-	DocumentID uuid.UUID
+	TenantID          uuid.UUID
+	DocumentID        uuid.UUID
+	DocumentVersionID *uuid.UUID
 
 	ObjectKey         string
 	OriginalFileName  string

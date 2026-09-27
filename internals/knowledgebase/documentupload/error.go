@@ -11,6 +11,7 @@ var (
 	ErrInvalidKBID             = errors.New("invalid knowledge base id")
 	ErrInvalidTitle            = errors.New("invalid title")
 	ErrInvalidDocumentType     = errors.New("invalid document type")
+	ErrInvalidStatus           = errors.New("invalid upload status")
 	ErrInActiveTenant          = errors.New("tenant is deactivated")
 	ErrKBArchived              = errors.New("knowledge base is arcchived")
 	ErrUsersMembershipDisabled = errors.New("users membership is disabled")

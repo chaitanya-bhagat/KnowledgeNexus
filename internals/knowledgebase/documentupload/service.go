@@ -21,6 +21,7 @@ import (
 
 type DocumentUploadService struct {
 	uploadRepo       Repository
+	completionRepo   CompletionRepository
 	objectStore      storage.ObjectStore
 	tenantReader     tenant.Reader
 	membershipReader membership.Reader
@@ -31,9 +32,10 @@ type DocumentUploadService struct {
 
 var uploadExpiry = 15 * time.Minute
 
-func NewDocumentUploadService(uploadRepo Repository, objectStore storage.ObjectStore, tenantReader tenant.Reader, membershipReader membership.Reader, documentRepo document.Repository, kbRepo knowledgebase.Reader, logger *zap.Logger) *DocumentUploadService {
+func NewDocumentUploadService(uploadRepo Repository, objectStore storage.ObjectStore, completionRepo CompletionRepository, tenantReader tenant.Reader, membershipReader membership.Reader, documentRepo document.Repository, kbRepo knowledgebase.Reader, logger *zap.Logger) *DocumentUploadService {
 	return &DocumentUploadService{
 		uploadRepo:       uploadRepo,
+		completionRepo:   completionRepo,
 		objectStore:      objectStore,
 		tenantReader:     tenantReader,
 		membershipReader: membershipReader,

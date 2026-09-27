@@ -17,7 +17,7 @@ type documentVersionRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewDocumentVersion(db *pgxpool.Pool) *documentVersionRepository {
+func NewDocumentVersionRepository(db *pgxpool.Pool) *documentVersionRepository {
 	return &documentVersionRepository{
 		db: db,
 	}
