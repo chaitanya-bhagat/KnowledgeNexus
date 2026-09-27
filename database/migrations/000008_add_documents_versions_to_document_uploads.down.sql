@@ -1,0 +1,2 @@
+ALTER TABLE table_document_uploads DROP CONSTRAINT document_upload_document_version_fk;
+ALTER TABLE table_document_uploads DROP COLUMN document_version_id;
