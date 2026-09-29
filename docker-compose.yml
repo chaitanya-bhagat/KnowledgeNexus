@@ -26,7 +26,7 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:latest
+    image: minio-community:local
     container_name: knowledge-nexus-minio
     command: server /data  --console-address ":9001"
     environment:

@@ -12,6 +12,12 @@ var (
 	ErrInvalidTitle            = errors.New("invalid title")
 	ErrInvalidDocumentType     = errors.New("invalid document type")
 	ErrInvalidStatus           = errors.New("invalid upload status")
+
+	ErrInvalidUploadID = errors.New("invalid upload id")
+	ErrUploadExpired   = errors.New("upload expired")
+	ErrObjectNotFound  = errors.New("uploaded object not found")
+	ErrSizeMismatch    = errors.New("uploaded object size mismatch")
+
 	ErrInActiveTenant          = errors.New("tenant is deactivated")
 	ErrKBArchived              = errors.New("knowledge base is arcchived")
 	ErrUsersMembershipDisabled = errors.New("users membership is disabled")

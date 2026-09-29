@@ -10,19 +10,23 @@ import (
 	identityhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/identity"
 	knowledgebasehandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/base"
 	documenthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/document"
+	documentuploadhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/documentupload"
 	documentversionhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/documentversion"
 	membershiphandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant/memebership"
 	tenanthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant/tenant"
+	adapterminio "github.com/chaitanya-bhagat/knowledge-nexus/adapters/objectstore/minio"
 	"github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres"
 	adapteridentity "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/identity"
 	adapterknowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase/base"
 	adapterdocument "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase/document"
+	adapterdocumentupload "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase/documentupload"
 	adapterdocumentversion "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/knowledgebase/documentversion"
 	adaptertenant "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/tenant"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/config"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/identity"
 	knowledgebase "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/base"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/document"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/documentupload"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/documentversion"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/membership"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/tenant"
@@ -56,9 +60,18 @@ func buildApp(ctx context.Context, cfg config.Config, logger *zap.Logger) (*App,
 	documentService := document.NewDocumentService(documentRepo, tenantRepo, kbRepo, identityRepo, logger)
 	documentHandler := documenthandler.NewDocumentHandler(documentService, logger)
 
-	documentVersionRepo := adapterdocumentversion.NewDocumentVersion(dbPool)
+	documentVersionRepo := adapterdocumentversion.NewDocumentVersionRepository(dbPool)
 	documentVersionService := documentversion.NewDocumentVersionService(documentVersionRepo, documentRepo, kbRepo, tenantRepo, identityRepo, logger)
 	documentVersHandler := documentversionhandler.NewDocumentVersionHandler(documentVersionService, logger)
+
+	storageRepo, err := adapterminio.NewMinIOObjectStore(cfg.MinIO)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create minio %w", err)
+	}
+
+	documentUploadRepo := adapterdocumentupload.NewDocumentUploadRepository(dbPool)
+	documentUploadservice := documentupload.NewDocumentUploadService(documentUploadRepo, storageRepo, documentUploadRepo, tenantRepo, membershipRepo, documentRepo, kbRepo, logger)
+	documentUploadHandler := documentuploadhandler.NewDocumentUploadHandler(documentUploadservice, logger)
 
 	healthHandler := health.NewHealthHandler(dbPool)
 
@@ -72,6 +85,7 @@ func buildApp(ctx context.Context, cfg config.Config, logger *zap.Logger) (*App,
 			KnowledgeBase:   kbHandler,
 			Document:        documentHandler,
 			DocumentVersion: documentVersHandler,
+			DocumentUpload:  documentUploadHandler,
 		}),
 	}
 	return NewApp(server, logger, dbPool), nil

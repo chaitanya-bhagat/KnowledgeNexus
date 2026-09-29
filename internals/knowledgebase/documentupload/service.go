@@ -123,6 +123,7 @@ func (dus *DocumentUploadService) Initiate(ctx context.Context, input kbmodel.In
 			KbID:         input.Document.KnowledgeBaseID,
 			Title:        input.Document.Title,
 			DocumentType: input.Document.DocumentType,
+			Status:       kbmodel.DocumentStatusActive,
 			CreatedBy:    input.CreatedBy,
 		}
 		err = dus.documentRepo.Create(ctx, doc)
@@ -176,4 +177,51 @@ func safeFilename(filename string) string {
 	}
 
 	return filename
+}
+
+func (dus *DocumentUploadService) Complete(ctx context.Context, input kbmodel.CompleteInput) (kbmodel.CompleteResult, error) {
+	if input.TenantID == uuid.Nil {
+		return kbmodel.CompleteResult{}, ErrInvalidTenantID
+	}
+	if input.UploadID == uuid.Nil {
+		return kbmodel.CompleteResult{}, ErrInvalidUploadID
+	}
+	upload, err := dus.uploadRepo.GetByID(ctx, input.TenantID, input.UploadID)
+	if err != nil {
+		return kbmodel.CompleteResult{}, fmt.Errorf("failed to get upload: %w", err)
+	}
+	if upload.Status == kbmodel.DocumentUploadCompleted {
+		version, err := dus.completionRepo.MarkCompleted(ctx, input.TenantID, input.UploadID)
+		if err != nil {
+			return kbmodel.CompleteResult{}, fmt.Errorf("failed to get version: %w", err)
+		}
+		return kbmodel.CompleteResult{
+			DocumentID:        version.DocumentID,
+			DocumentVersionID: version.ID,
+			VersionNumber:     version.VersionNumber,
+		}, nil
+	}
+	if upload.Status != kbmodel.DocumentUploadPending {
+		return kbmodel.CompleteResult{}, ErrInvalidStatus
+	}
+	if time.Now().After(upload.ExpiredAt) {
+		return kbmodel.CompleteResult{}, ErrUploadExpired
+	}
+
+	info, err := dus.objectStore.Stat(ctx, upload.ObjectKey)
+	if err != nil {
+		return kbmodel.CompleteResult{}, fmt.Errorf("stat uploaded object: %w", err)
+	}
+	if info.SizeBytes != upload.ExpectedSizeBytes {
+		return kbmodel.CompleteResult{}, ErrSizeMismatch
+	}
+	version, err := dus.completionRepo.MarkCompleted(ctx, input.TenantID, input.UploadID)
+	if err != nil {
+		return kbmodel.CompleteResult{}, fmt.Errorf("failed to complete document: %w", err)
+	}
+	return kbmodel.CompleteResult{
+		DocumentID:        version.DocumentID,
+		DocumentVersionID: version.ID,
+		VersionNumber:     version.VersionNumber,
+	}, nil
 }

@@ -54,3 +54,14 @@ type InitiateResult struct {
 	URL        string
 	ExpiresAt  time.Time
 }
+
+type CompleteInput struct {
+	TenantID uuid.UUID
+	UploadID uuid.UUID
+}
+
+type CompleteResult struct {
+	DocumentID        uuid.UUID
+	DocumentVersionID uuid.UUID
+	VersionNumber     int
+}

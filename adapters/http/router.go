@@ -49,6 +49,11 @@ func LoadRoutes(deps Handlers) *chi.Mux {
 	router.Post("/document-version/get", deps.DocumentVersion.Get)
 	router.Post("/document-version/list", deps.DocumentVersion.List)
 
+	router.Route("/uploads", func(r chi.Router) {
+		r.Post("/initiate", deps.DocumentUpload.Initiate)
+		r.Post("/complete", deps.DocumentUpload.Complete)
+	})
+
 	return router
 
 }

@@ -24,6 +24,7 @@ func TestServiceInitiate(t *testing.T) {
 
 	uploadRepo := uploadMock.NewMockRepository(ctrl)
 	tenantRepo := tenantMock.NewMockReader(ctrl)
+	completeRepo := uploadMock.NewMockCompletionRepository(ctrl)
 	membershipRepo := membershipMock.NewMockReader(ctrl)
 	documentRepo := docMock.NewMockRepository(ctrl)
 	objectStore := objectMock.NewMockObjectStore(ctrl)
@@ -63,6 +64,9 @@ func TestServiceInitiate(t *testing.T) {
 			}
 			if doc.TenantID != tenantID {
 				t.Errorf("document TenantID = %v, want %v", doc.TenantID, tenantID)
+			}
+			if doc.Status != kbmodel.DocumentStatusActive {
+				t.Errorf("document status = %v, want %v", doc.Status, kbmodel.DocumentStatusActive)
 			}
 
 			if doc.KbID != kbID {
@@ -128,7 +132,7 @@ func TestServiceInitiate(t *testing.T) {
 			}, nil
 		})
 
-	service := NewDocumentUploadService(uploadRepo, objectStore, tenantRepo, membershipRepo, documentRepo, kbRepo, logger)
+	service := NewDocumentUploadService(uploadRepo, objectStore, completeRepo, tenantRepo, membershipRepo, documentRepo, kbRepo, logger)
 	result, err := service.Initiate(context.Background(), kbmodel.InitiateInput{
 		TenantID:   tenantID,
 		DocumentID: nil,

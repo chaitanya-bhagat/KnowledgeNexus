@@ -22,5 +22,5 @@ type Repository interface {
 }
 
 type CompletionRepository interface {
-	MarkCompleted(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) error
+	MarkCompleted(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) (kbmodel.DocumentVersion, error)
 }

@@ -58,10 +58,10 @@ func (dvr *documentUploadRepository) GetByID(ctx context.Context, tenantID uuid.
 	return upload, nil
 }
 
-func (dvr *documentUploadRepository) MarkCompleted(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) error {
+func (dvr *documentUploadRepository) MarkCompleted(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) (kbmodel.DocumentVersion, error) {
 	tx, err := dvr.db.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("being upload completion transaction: %w", err)
+		return kbmodel.DocumentVersion{}, fmt.Errorf("being upload completion transaction: %w", err)
 	}
 	defer func() {
 		_ = tx.Rollback(ctx)
@@ -69,47 +69,47 @@ func (dvr *documentUploadRepository) MarkCompleted(ctx context.Context, tenantID
 
 	upload, err := getUploadForUpdate(ctx, tx, tenantID, uploadID)
 	if err != nil {
-		return err
+		return kbmodel.DocumentVersion{}, err
 	}
 	if upload.Status == kbmodel.DocumentUploadCompleted {
 		if upload.DocumentVersionID == nil {
-			return fmt.Errorf("completed upload %s has no document version", uploadID)
+			return kbmodel.DocumentVersion{}, fmt.Errorf("completed upload %s has no document version", uploadID)
 		}
-		_, err := getDocumentVersion(ctx, tx, tenantID, *upload.DocumentVersionID)
+		version, err := getDocumentVersion(ctx, tx, tenantID, *upload.DocumentVersionID)
 		if err != nil {
-			return err
+			return kbmodel.DocumentVersion{}, err
 		}
 		if err := tx.Commit(ctx); err != nil {
-			return fmt.Errorf("failed to commit upload completion transaction: %w", err)
+			return kbmodel.DocumentVersion{}, fmt.Errorf("failed to commit upload completion transaction: %w", err)
 		}
-		return nil
+		return version, nil
 	}
 	if upload.Status != kbmodel.DocumentUploadPending {
-		return documentupload.ErrInvalidStatus
+		return kbmodel.DocumentVersion{}, documentupload.ErrInvalidStatus
 	}
 
 	if err := lockParentDocument(ctx, tx, tenantID, upload.DocumentID); err != nil {
-		return err
+		return kbmodel.DocumentVersion{}, err
 	}
 
 	versionNumber, err := nextVersionNumber(ctx, tx, tenantID, upload.DocumentID)
 	if err != nil {
-		return err
+		return kbmodel.DocumentVersion{}, err
 	}
 
 	createVersion, err := createDocumentVersion(ctx, tx, upload, versionNumber)
 	if err != nil {
-		return err
+		return kbmodel.DocumentVersion{}, err
 	}
 
 	if err := completeUpload(ctx, tx, tenantID, uploadID, createVersion.ID); err != nil {
-		return err
+		return kbmodel.DocumentVersion{}, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("failed to commit upload completion transaction: %w", err)
+		return kbmodel.DocumentVersion{}, fmt.Errorf("failed to commit upload completion transaction: %w", err)
 	}
-	return nil
+	return createVersion, nil
 }
 
 // func (dvr *documentUploadRepository) MarkExpired(ctx context.Context, tenantID uuid.UUID, uploadID uuid.UUID) error {
@@ -154,11 +154,11 @@ func createDocumentVersion(ctx context.Context, tx pgx.Tx, upload kbmodel.Docume
 	err := tx.QueryRow(
 		ctx,
 		`
-		INSERT INTO document_versions (id, tenant_id, document_id, version_number, object_key, status, created_by)
-		VALUES ($1, $2, $3, $4, $5, 'uploaded', $6)
+		INSERT INTO table_document_versions (id, tenant_id, document_id, version_number, object_key, original_filename, status, created_by)
+		VALUES ($1, $2, $3, $4, $5, $6, 'uploaded', $7)
 		RETURNING id, tenant_id, document_id, version_number, object_key, status, created_by, created_at
 		`,
-		versionID, upload.TenantID, upload.DocumentID, versionNumber, upload.ObjectKey, upload.CreatedBy).Scan(
+		versionID, upload.TenantID, upload.DocumentID, versionNumber, upload.ObjectKey, upload.OriginalFileName, upload.CreatedBy).Scan(
 		&version.ID, &version.TenantID, &version.DocumentID, &version.VersionNumber, &version.ObjectKey, &version.Status,
 		&version.CreatedBy, &version.CreatedAt)
 
@@ -201,7 +201,7 @@ func lockParentDocument(ctx context.Context, tx pgx.Tx, tenantID uuid.UUID, docI
 func getUploadForUpdate(ctx context.Context, tx pgx.Tx, tenantID uuid.UUID, uploadID uuid.UUID) (kbmodel.DocumentUpload, error) {
 	var upload kbmodel.DocumentUpload
 	query := `
-	SELECT id, tenant_id, document_id, document_version_id, object_key, original_filename, content_type, expected_size_bytes, status, created_by, expires_at, created_at, completed_at
+	SELECT id, tenant_id, document_id, document_version_id, object_key, original_filename, content_type, expected_size_bytes, status, created_by, expire_at, created_at, completed_at
 	FROM table_document_uploads 
 	WHERE tenant_id=$1 AND id=$2
 	FOR UPDATE`

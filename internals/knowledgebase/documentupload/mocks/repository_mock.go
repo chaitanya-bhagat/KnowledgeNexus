@@ -147,3 +147,42 @@ func (mr *MockRepositoryMockRecorder) GetByID(ctx, tenantID, uploadID any) *gomo
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), ctx, tenantID, uploadID)
 }
+
+// MockCompletionRepository is a mock of CompletionRepository interface.
+type MockCompletionRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockCompletionRepositoryMockRecorder
+	isgomock struct{}
+}
+
+// MockCompletionRepositoryMockRecorder is the mock recorder for MockCompletionRepository.
+type MockCompletionRepositoryMockRecorder struct {
+	mock *MockCompletionRepository
+}
+
+// NewMockCompletionRepository creates a new mock instance.
+func NewMockCompletionRepository(ctrl *gomock.Controller) *MockCompletionRepository {
+	mock := &MockCompletionRepository{ctrl: ctrl}
+	mock.recorder = &MockCompletionRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockCompletionRepository) EXPECT() *MockCompletionRepositoryMockRecorder {
+	return m.recorder
+}
+
+// MarkCompleted mocks base method.
+func (m *MockCompletionRepository) MarkCompleted(ctx context.Context, tenantID, uploadID uuid.UUID) (kbmodel.DocumentVersion, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkCompleted", ctx, tenantID, uploadID)
+	ret0, _ := ret[0].(kbmodel.DocumentVersion)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MarkCompleted indicates an expected call of MarkCompleted.
+func (mr *MockCompletionRepositoryMockRecorder) MarkCompleted(ctx, tenantID, uploadID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkCompleted", reflect.TypeOf((*MockCompletionRepository)(nil).MarkCompleted), ctx, tenantID, uploadID)
+}

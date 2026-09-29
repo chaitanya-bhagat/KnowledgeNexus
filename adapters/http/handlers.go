@@ -5,6 +5,7 @@ import (
 	identityhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/identity"
 	knowledgebasehandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/base"
 	documenthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/document"
+	documentuploadhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/documentupload"
 	documentversionhandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/knowledgebase/documentversion"
 	membershiphandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant/memebership"
 	tenanthandler "github.com/chaitanya-bhagat/knowledge-nexus/adapters/http/tenant/tenant"
@@ -18,4 +19,5 @@ type Handlers struct {
 	KnowledgeBase   *knowledgebasehandler.KnowledgeBaseHandler
 	Document        *documenthandler.DocumentHandler
 	DocumentVersion *documentversionhandler.DocumentVersionHandler
+	DocumentUpload  *documentuploadhandler.DocumentUploadHandler
 }
