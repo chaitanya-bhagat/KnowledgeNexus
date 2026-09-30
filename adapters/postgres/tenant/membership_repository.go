@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/membership"
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/tenant"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -67,7 +68,7 @@ func (mr *MembershipRepository) CreateMembership(ctx context.Context, m *tenantm
 	case pgErr.Code == "23505" &&
 		pgErr.ConstraintName == "tenant_memberships_unique":
 
-		return tenant.ErrMembershipExists
+		return membership.ErrMembershipExists
 
 	case pgErr.Code == "23503" &&
 		pgErr.ConstraintName == "tenant_memberships_tenant_fk":
@@ -77,7 +78,7 @@ func (mr *MembershipRepository) CreateMembership(ctx context.Context, m *tenantm
 	case pgErr.Code == "23503" &&
 		pgErr.ConstraintName == "tenant_memberships_user_fk":
 
-		return tenant.ErrUserNotFound
+		return membership.ErrUserNotFound
 
 	default:
 		return err
@@ -117,7 +118,7 @@ func (mr *MembershipRepository) GetMembership(ctx context.Context, tenantID uuid
 	)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return tenantmodel.Membership{}, tenant.ErrMembershipNotFound
+		return tenantmodel.Membership{}, membership.ErrMembershipNotFound
 	}
 
 	if err != nil {
@@ -202,7 +203,7 @@ func (r *MembershipRepository) UpdateMembershipRole(ctx context.Context, tenantI
 	}
 
 	if result.RowsAffected() == 0 {
-		return tenant.ErrMembershipNotFound
+		return membership.ErrMembershipNotFound
 	}
 
 	return nil
@@ -231,7 +232,7 @@ func (r *MembershipRepository) UpdateMembershipStatus(ctx context.Context, tenan
 	}
 
 	if result.RowsAffected() == 0 {
-		return tenant.ErrMembershipNotFound
+		return membership.ErrMembershipNotFound
 	}
 
 	return nil

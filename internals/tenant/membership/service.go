@@ -1,19 +1,20 @@
-package tenant
+package membership
 
 import (
 	"context"
 	"time"
 
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/tenant"
 	"github.com/google/uuid"
 )
 
 type MembershipService struct {
-	tenantRepo     Repository
-	membershipRepo MembershipRepository
+	tenantRepo     tenant.Reader
+	membershipRepo Repository
 }
 
-func NewMembershipService(tenantRepo Repository, membershipRepo MembershipRepository) *MembershipService {
+func NewMembershipService(tenantRepo tenant.Reader, membershipRepo Repository) *MembershipService {
 	return &MembershipService{
 		tenantRepo:     tenantRepo,
 		membershipRepo: membershipRepo,

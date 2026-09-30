@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/mocks"
 	tenantmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/model"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/tenant"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"

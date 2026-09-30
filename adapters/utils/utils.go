@@ -5,7 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/membership"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/tenant/tenant"
 	"go.uber.org/zap"
 )
 
@@ -17,49 +18,49 @@ func WriteJson(w http.ResponseWriter, statusCode int, body any) {
 
 func HandleMembershipError(w http.ResponseWriter, err error, logger *zap.Logger) {
 	switch {
-	case errors.Is(err, tenant.ErrInvalidTenantID):
+	case errors.Is(err, membership.ErrInvalidTenantID):
 		WriteJson(
 			w,
 			http.StatusBadRequest,
 			err.Error(),
 		)
 
-	case errors.Is(err, tenant.ErrInvalidUserID):
+	case errors.Is(err, membership.ErrInvalidUserID):
 		WriteJson(
 			w,
 			http.StatusBadRequest,
 			err.Error(),
 		)
 
-	case errors.Is(err, tenant.ErrInvalidRole):
+	case errors.Is(err, membership.ErrInvalidRole):
 		WriteJson(
 			w,
 			http.StatusBadRequest,
 			err.Error(),
 		)
 
-	case errors.Is(err, tenant.ErrOwnerRoleManagedSeparately):
+	case errors.Is(err, membership.ErrOwnerRoleManagedSeparately):
 		WriteJson(
 			w,
 			http.StatusConflict,
 			err.Error(),
 		)
 
-	case errors.Is(err, tenant.ErrMembershipExists):
+	case errors.Is(err, membership.ErrMembershipExists):
 		WriteJson(
 			w,
 			http.StatusConflict,
 			err.Error(),
 		)
 
-	case errors.Is(err, tenant.ErrTenantDisabled):
+	case errors.Is(err, membership.ErrTenantDisabled):
 		WriteJson(
 			w,
 			http.StatusConflict,
 			err.Error(),
 		)
 
-	case errors.Is(err, tenant.ErrNotFound), errors.Is(err, tenant.ErrUserNotFound), errors.Is(err, tenant.ErrMembershipNotFound):
+	case errors.Is(err, tenant.ErrNotFound), errors.Is(err, membership.ErrUserNotFound), errors.Is(err, membership.ErrMembershipNotFound):
 		WriteJson(
 			w,
 			http.StatusNotFound,

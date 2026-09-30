@@ -11,9 +11,17 @@ import (
 
 //go:generate mockgen -source=repository.go -destination=mocks/repository_mock.go -package=mocks
 
-type Repository interface {
-	Create(ctx context.Context, tenant *tenantmodel.Tenant) error
+type Reader interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*tenantmodel.Tenant, error)
+}
+
+type Writer interface {
+	Create(ctx context.Context, tenant *tenantmodel.Tenant) error
 	Update(ctx context.Context, tenant *tenantmodel.Tenant) error
 	UpdateStatus(ctx context.Context, id uuid.UUID, status tenantmodel.Status, updatedAt time.Time) error
+}
+
+type Repository interface {
+	Reader
+	Writer
 }

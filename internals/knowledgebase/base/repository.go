@@ -8,10 +8,18 @@ import (
 	"github.com/google/uuid"
 )
 
-type Repository interface {
-	CreateKnowledgeBase(ctx context.Context, kb kbmodel.KnowledgeBase) error
+//go:generate mockgen -source=repository.go -destination=mocks/repository_mock.go -package=mocks
+
+type Reader interface {
 	GetKnowledgeBaseByID(ctx context.Context, kbID uuid.UUID, tenantID uuid.UUID) (kbmodel.KnowledgeBase, error)
 	ListKnowledgeBasesByTenantID(ctx context.Context, tenantID uuid.UUID) ([]kbmodel.KnowledgeBase, error)
+}
+type Writer interface {
+	CreateKnowledgeBase(ctx context.Context, kb kbmodel.KnowledgeBase) error
 	UpdateKnowledgeBase(ctx context.Context, kb *kbmodel.KnowledgeBase) error
 	UpdateKnowledgeBaseStatus(ctx context.Context, tenantID uuid.UUID, kbID uuid.UUID, status kbmodel.Status, updatedAt time.Time) error
+}
+type Repository interface {
+	Reader
+	Writer
 }
