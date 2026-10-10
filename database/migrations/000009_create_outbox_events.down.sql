@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS table_outbox_events;
