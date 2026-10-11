@@ -13,6 +13,7 @@ type Config struct {
 	Logger     LoggerConfig
 	Postgresql PostgresConfig
 	MinIO      MinIOConfig
+	Nats       NatsConfig
 }
 
 func Load() (Config, error) {
@@ -39,10 +40,15 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to load minio config: %w", err)
 	}
+	nats, err := loadNatsConfig()
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to load nats config: %w", err)
+	}
 	return Config{
 		Server:     server,
 		Logger:     logger,
 		Postgresql: postgresdb,
 		MinIO:      minIO,
+		Nats:       nats,
 	}, nil
 }
