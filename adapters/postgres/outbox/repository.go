@@ -3,7 +3,8 @@ package adapteroutbox
 import (
 	"context"
 	"fmt"
-	"uuid"
+
+	"github.com/google/uuid"
 
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/outbox"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,6 +19,8 @@ func NewOutboxRepository(db *pgxpool.Pool) *outboxRepository {
 		db: db,
 	}
 }
+
+var _ outbox.Repository = (*outboxRepository)(nil)
 
 func (or *outboxRepository) GetUnpublishedEvents(ctx context.Context, limit int) ([]outbox.Event, error) {
 	if limit <= 0 {
