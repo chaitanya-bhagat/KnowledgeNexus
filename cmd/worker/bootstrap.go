@@ -10,11 +10,16 @@ import (
 	"github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres"
 	adapteroutbox "github.com/chaitanya-bhagat/knowledge-nexus/adapters/postgres/outbox"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/config"
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/logger"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/outbox"
 )
 
 func run(ctx context.Context) error {
 	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+	logger, err := logger.NewLogger(cfg.Logger)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,7 +39,7 @@ func run(ctx context.Context) error {
 	publisher := nats.NewJetStreamPublisher(natsClient.JetStream)
 
 	outboxService := outbox.NewOutboxService(outboxRepo, publisher)
-	outboxWorker, err := outbox.NewWorker(outboxService, 2*time.Second, 100)
+	outboxWorker, err := outbox.NewWorker(outboxService, 2*time.Second, 100, logger)
 	if err != nil {
 		return fmt.Errorf("failed to create outbox worker %w", err)
 	}
