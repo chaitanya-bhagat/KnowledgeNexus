@@ -2,11 +2,13 @@ package adapterdocumentupload
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 
+	"github.com/chaitanya-bhagat/knowledge-nexus/internals/events"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/documentupload"
 	"github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/documentversion"
 	kbmodel "github.com/chaitanya-bhagat/knowledge-nexus/internals/knowledgebase/model"
@@ -103,6 +105,18 @@ func (dvr *documentUploadRepository) MarkCompleted(ctx context.Context, tenantID
 	}
 
 	if err := completeUpload(ctx, tx, tenantID, uploadID, createVersion.ID); err != nil {
+		return kbmodel.DocumentVersion{}, err
+	}
+
+	event := events.DocumentUploaded{
+		EventID:           uuid.New(),
+		DocumentID:        upload.DocumentID,
+		TenantID:          tenantID,
+		DocumentVersionID: createVersion.ID,
+		ObjectKey:         upload.ObjectKey,
+	}
+
+	if err := insertOutboxEvent(ctx, tx, event); err != nil {
 		return kbmodel.DocumentVersion{}, err
 	}
 
@@ -239,4 +253,22 @@ func getDocumentVersion(ctx context.Context, tx pgx.Tx, tenantID uuid.UUID, vers
 	}
 	return version, nil
 
+}
+
+func insertOutboxEvent(ctx context.Context, tx pgx.Tx, event events.DocumentUploaded) error {
+
+	payload, err := json.Marshal(event)
+	if err != nil {
+		return fmt.Errorf("failed to marshal event payload: %w", err)
+	}
+
+	const query = `
+	INSERT INTO table_outbox_events (id, tenant_id, event_type, aggregate_id, payload)
+	VALUES ($1, $2, $3, $4, $5)
+	`
+	_, err = tx.Exec(ctx, query, event.EventID, event.TenantID, events.DocumentUploadedV1, event.DocumentID, payload)
+	if err != nil {
+		return fmt.Errorf("failed to insert outbox event: %w", err)
+	}
+	return nil
 }
