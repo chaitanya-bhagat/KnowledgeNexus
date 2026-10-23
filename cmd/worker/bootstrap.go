@@ -43,6 +43,7 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to create outbox worker %w", err)
 	}
+	logger.Info("worker started")
 	return outboxWorker.Run(ctx)
 
 }
